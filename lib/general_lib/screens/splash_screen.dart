@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import '../services/first_launch_service.dart';
+import '../services/auth_service.dart';
 import '../constants/app_theme.dart';
 import '../constants/app_constants.dart';
 import 'welcome_screen.dart';
+import '../../user_lib/screens/home_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   final Widget homeScreen;
@@ -27,21 +29,38 @@ class _SplashScreenState extends State<SplashScreen> {
     // Add a small delay for splash effect
     await Future.delayed(AppConstants.splashDuration);
 
-    final isFirstLaunch = await FirstLaunchService.isFirstLaunch();
+    // Check if user is already logged in
+    final authService = AuthService();
+    final currentUser = authService.currentUser;
 
     if (mounted) {
-      if (isFirstLaunch) {
+      if (currentUser != null) {
+        // User is logged in, go directly to home screen
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
-            builder: (context) => WelcomeScreen(homeScreen: widget.homeScreen),
+            builder: (context) => const HomeScreen(),
           ),
         );
       } else {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => widget.homeScreen,
-          ),
-        );
+        // User is not logged in, check if it's first launch
+        final isFirstLaunch = await FirstLaunchService.isFirstLaunch();
+
+        if (mounted) {
+          if (isFirstLaunch) {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(
+                builder: (context) =>
+                    WelcomeScreen(homeScreen: widget.homeScreen),
+              ),
+            );
+          } else {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(
+                builder: (context) => widget.homeScreen,
+              ),
+            );
+          }
+        }
       }
     }
   }

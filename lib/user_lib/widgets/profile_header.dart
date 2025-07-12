@@ -1,149 +1,150 @@
 import 'package:flutter/material.dart';
-import '../models/profile_models.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../../general_lib/constants/app_theme.dart';
+import '../../general_lib/services/auth_service.dart';
 
 class ProfileHeader extends StatelessWidget {
-  final UserProfile profile;
-
-  const ProfileHeader({
-    super.key,
-    required this.profile,
-  });
+  const ProfileHeader({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+
     return Container(
-      padding: const EdgeInsets.all(24),
-      child: Row(
-        children: [
-          // Profile Avatar
-          Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: LinearGradient(
-                colors: [
-                  Colors.orange.shade300,
-                  Colors.orange.shade600,
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-            ),
-            child: ClipOval(
-              child: profile.profileImage != null
-                  ? Image.network(
-                      profile.profileImage!,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return _buildDefaultAvatar();
-                      },
-                    )
-                  : _buildDefaultAvatar(),
-            ),
-          ),
-          
-          const SizedBox(width: 20),
-          
-          // Profile Info
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  profile.name,
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.star,
-                      color: Colors.amber,
-                      size: 18,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      profile.rating,
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey[600],
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.amber.shade100,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        profile.badge,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.amber.shade700,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                TextButton(
-                  onPressed: () {
-                    // Navigate to profile details
-                  },
-                  style: TextButton.styleFrom(
-                    padding: EdgeInsets.zero,
-                    alignment: Alignment.centerLeft,
-                  ),
-                  child: Text(
-                    'View profile',
-                    style: TextStyle(
-                      color: Colors.blue[600],
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: AppTheme.primaryWhite,
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.primaryBlack.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
+      ),
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            children: [
+              // Profile Avatar
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: AppTheme.backgroundColor,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: AppTheme.borderColor,
+                    width: 2,
+                  ),
+                ),
+                child: user?.photoURL != null
+                    ? ClipOval(
+                        child: Image.network(
+                          user!.photoURL!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return _buildDefaultAvatar();
+                          },
+                        ),
+                      )
+                    : _buildDefaultAvatar(),
+              ),
+
+              const SizedBox(height: 16),
+
+              // User Name
+              Text(
+                user?.displayName ?? 'Người dùng',
+                style: AppTheme.heading3,
+                textAlign: TextAlign.center,
+              ),
+
+              const SizedBox(height: 4),
+
+              // User Email
+              Text(
+                user?.email ?? '',
+                style: AppTheme.body2.copyWith(
+                  color: AppTheme.mediumGray,
+                ),
+                textAlign: TextAlign.center,
+              ),
+
+              const SizedBox(height: 20),
+
+              // Role-based content
+              FutureBuilder<String>(
+                future: AuthService().getUserRole(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const CircularProgressIndicator();
+                  }
+                  final role = snapshot.data ?? 'user';
+                  if (role == 'driver') {
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _buildStatItem('12', 'Chuyến đi'),
+                        _buildDivider(),
+                        _buildStatItem('4.8', 'Đánh giá'),
+                        _buildDivider(),
+                        _buildStatItem('2', 'Năm'),
+                      ],
+                    );
+                  } else {
+                    return Text(
+                      'Bạn đang là người dùng',
+                      style: AppTheme.body2.copyWith(
+                        color: AppTheme.mediumGray,
+                      ),
+                      textAlign: TextAlign.center,
+                    );
+                  }
+                },
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
 
   Widget _buildDefaultAvatar() {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Colors.orange.shade300,
-            Colors.orange.shade600,
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-      ),
-      child: Center(
-        child: Text(
-          profile.name.isNotEmpty ? profile.name[0].toUpperCase() : 'U',
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 32,
-            fontWeight: FontWeight.bold,
+    return const Icon(
+      Icons.person,
+      size: 40,
+      color: AppTheme.mediumGray,
+    );
+  }
+
+  Widget _buildStatItem(String value, String label) {
+    return Column(
+      children: [
+        Text(
+          value,
+          style: AppTheme.heading3.copyWith(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
           ),
         ),
-      ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: AppTheme.caption.copyWith(
+            color: AppTheme.mediumGray,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDivider() {
+    return Container(
+      width: 1,
+      height: 32,
+      color: AppTheme.borderColor,
     );
   }
 }

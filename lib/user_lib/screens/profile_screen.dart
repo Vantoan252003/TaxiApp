@@ -1,185 +1,113 @@
 import 'package:flutter/material.dart';
+import '../../general_lib/constants/app_theme.dart';
 import '../../general_lib/services/auth_service.dart';
-import '../models/profile_models.dart';
+import '../../general_lib/screens/sign_in_screen.dart';
 import '../widgets/profile_header.dart';
-import '../widgets/menu_section.dart';
+import '../widgets/profile_menu_section.dart';
+import '../widgets/logout_dialog.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Temporary user profile - later get from Firebase
-    final profile = UserProfile(
-      name: 'Sophia',
-      rating: '4.98',
-      badge: 'Gold',
-    );
-
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black87),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: const Text(
-          'Account',
-          style: TextStyle(
-            color: Colors.black87,
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        centerTitle: true,
-      ),
+      backgroundColor: AppTheme.backgroundColor,
       body: SingleChildScrollView(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Profile Header
-            ProfileHeader(profile: profile),
-            
-            const SizedBox(height: 8),
-            
-            // Account Section
-            MenuSection(
-              title: 'Account',
+            const ProfileHeader(),
+            const SizedBox(height: 24),
+            ProfileMenuSection(
+              title: 'Tài khoản',
               items: [
-                MenuItem(
-                  title: 'Payment methods',
-                  icon: Icons.credit_card,
-                  onTap: () {
-                    // Navigate to payment methods
-                  },
+                ProfileMenuItem(
+                  icon: Icons.person_outline,
+                  title: 'Thông tin cá nhân',
+                  onTap: () {},
                 ),
-                MenuItem(
-                  title: 'Wallet',
-                  icon: Icons.account_balance_wallet,
-                  onTap: () {
-                    // Navigate to wallet
-                  },
+                ProfileMenuItem(
+                  icon: Icons.security_outlined,
+                  title: 'Bảo mật',
+                  onTap: () {},
                 ),
-                MenuItem(
-                  title: 'Ride Pass',
-                  icon: Icons.card_membership,
-                  onTap: () {
-                    // Navigate to ride pass
-                  },
-                ),
-                MenuItem(
-                  title: 'Send a gift',
-                  icon: Icons.card_giftcard,
-                  onTap: () {
-                    // Navigate to gift
-                  },
-                ),
-                MenuItem(
-                  title: 'Invite friends',
-                  icon: Icons.person_add,
-                  onTap: () {
-                    // Navigate to invite friends
-                  },
+                ProfileMenuItem(
+                  icon: Icons.notifications_outlined,
+                  title: 'Thông báo',
+                  onTap: () {},
                 ),
               ],
             ),
-            
             const SizedBox(height: 16),
-            
-            // Settings Section
-            MenuSection(
-              title: 'Settings',
+            ProfileMenuSection(
+              title: 'Hỗ trợ',
               items: [
-                MenuItem(
-                  title: 'Settings',
-                  icon: Icons.settings,
-                  onTap: () {
-                    // Navigate to settings
-                  },
-                ),
-                MenuItem(
-                  title: 'Privacy Center',
-                  icon: Icons.security,
-                  onTap: () {
-                    // Navigate to privacy center
-                  },
-                ),
-                MenuItem(
-                  title: 'Legal',
-                  icon: Icons.description,
-                  onTap: () {
-                    // Navigate to legal
-                  },
-                ),
-              ],
-            ),
-            
-            const SizedBox(height: 16),
-            
-            // Support Section
-            MenuSection(
-              title: 'Support',
-              items: [
-                MenuItem(
-                  title: 'Help',
+                ProfileMenuItem(
                   icon: Icons.help_outline,
-                  onTap: () {
-                    // Navigate to help
-                  },
+                  title: 'Trung tâm trợ giúp',
+                  onTap: () {},
                 ),
-                MenuItem(
-                  title: 'Logout',
-                  icon: Icons.logout,
-                  onTap: () => _showLogoutDialog(context),
+                ProfileMenuItem(
+                  icon: Icons.chat_bubble_outline,
+                  title: 'Liên hệ hỗ trợ',
+                  onTap: () {},
+                ),
+                ProfileMenuItem(
+                  icon: Icons.star_outline,
+                  title: 'Đánh giá ứng dụng',
+                  onTap: () {},
                 ),
               ],
             ),
-            
-            const SizedBox(height: 100), // Space for bottom navigation
+            const SizedBox(height: 16),
+            ProfileMenuSection(
+              title: 'Khác',
+              items: [
+                ProfileMenuItem(
+                  icon: Icons.info_outline,
+                  title: 'Về chúng tôi',
+                  onTap: () {},
+                ),
+                ProfileMenuItem(
+                  icon: Icons.privacy_tip_outlined,
+                  title: 'Chính sách bảo mật',
+                  onTap: () {},
+                ),
+                ProfileMenuItem(
+                  icon: Icons.logout,
+                  title: 'Đăng xuất',
+                  isDestructive: true,
+                  onTap: () => _handleLogout(context),
+                ),
+              ],
+            ),
+            const SizedBox(height: 32),
           ],
         ),
       ),
     );
   }
 
-  void _showLogoutDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Đăng xuất'),
-          content: const Text('Bạn có chắc chắn muốn đăng xuất không?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Hủy'),
-            ),
-            TextButton(
-              onPressed: () async {
-                Navigator.of(context).pop();
-                try {
-                  await AuthService().signOut();
-                } catch (e) {
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(e.toString()),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                  }
-                }
-              },
-              child: const Text(
-                'Đăng xuất',
-                style: TextStyle(color: Colors.red),
-              ),
-            ),
-          ],
+  Future<void> _handleLogout(BuildContext context) async {
+    final shouldLogout = await LogoutDialog.show(context);
+    if (shouldLogout == true) {
+      if (context.mounted) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => const Center(
+            child: CircularProgressIndicator(),
+          ),
         );
-      },
-    );
+      }
+      await AuthService().signOut();
+      if (context.mounted) {
+        Navigator.of(context).pop();
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const SignInScreen()),
+          (route) => false,
+        );
+      }
+    }
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../general_lib/constants/app_theme.dart';
 
 class MainHomeScreen extends StatelessWidget {
   const MainHomeScreen({super.key});
@@ -6,12 +7,14 @@ class MainHomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF007AFF),
-        foregroundColor: Colors.white,
+        backgroundColor: AppTheme.primaryWhite,
         elevation: 0,
-        title: const Text('Taxi App'),
+        title: const Text(
+          'Taxi App',
+          style: AppTheme.heading3,
+        ),
         centerTitle: true,
       ),
       body: const Center(
@@ -20,26 +23,19 @@ class MainHomeScreen extends StatelessWidget {
           children: [
             Icon(
               Icons.local_taxi,
-              size: 100,
-              color: Color(0xFF007AFF),
+              size: 80,
+              color: AppTheme.accentBlue,
             ),
             SizedBox(height: 24),
             Text(
-              'Welcome to Taxi App!',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
+              'Chào mừng đến với Taxi App!',
+              style: AppTheme.heading2,
               textAlign: TextAlign.center,
             ),
             SizedBox(height: 16),
             Text(
-              'Your ride is just a tap away',
-              style: TextStyle(
-                fontSize: 18,
-                color: Colors.grey,
-              ),
+              'Chuyến đi của bạn chỉ cách một cú chạm',
+              style: AppTheme.body1,
               textAlign: TextAlign.center,
             ),
             SizedBox(height: 40),

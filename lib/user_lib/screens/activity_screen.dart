@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../general_lib/constants/app_theme.dart';
 
 class ActivityScreen extends StatelessWidget {
   const ActivityScreen({super.key});
@@ -6,17 +7,13 @@ class ActivityScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppTheme.primaryWhite,
         elevation: 0,
         title: const Text(
-          'Activity',
-          style: TextStyle(
-            color: Colors.black87,
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-          ),
+          'Hoạt động',
+          style: AppTheme.heading3,
         ),
         centerTitle: true,
       ),
@@ -25,18 +22,20 @@ class ActivityScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.history,
-              size: 80,
-              color: Colors.grey,
+              Icons.history_outlined,
+              size: 64,
+              color: AppTheme.mediumGray,
             ),
             SizedBox(height: 16),
             Text(
-              'No activity yet',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w500,
-                color: Colors.grey,
-              ),
+              'Chưa có hoạt động nào',
+              style: AppTheme.heading3,
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Lịch sử hoạt động sẽ hiển thị ở đây',
+              style: AppTheme.body2,
+              textAlign: TextAlign.center,
             ),
           ],
         ),

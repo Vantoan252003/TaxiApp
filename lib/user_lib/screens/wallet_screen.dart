@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../general_lib/constants/app_theme.dart';
 
 class WalletScreen extends StatelessWidget {
   const WalletScreen({super.key});
@@ -6,17 +7,13 @@ class WalletScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppTheme.primaryWhite,
         elevation: 0,
         title: const Text(
-          'Wallet',
-          style: TextStyle(
-            color: Colors.black87,
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-          ),
+          'Ví',
+          style: AppTheme.heading3,
         ),
         centerTitle: true,
       ),
@@ -25,18 +22,20 @@ class WalletScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.account_balance_wallet,
-              size: 80,
-              color: Colors.grey,
+              Icons.account_balance_wallet_outlined,
+              size: 64,
+              color: AppTheme.mediumGray,
             ),
             SizedBox(height: 16),
             Text(
-              'Wallet coming soon',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w500,
-                color: Colors.grey,
-              ),
+              'Ví của bạn',
+              style: AppTheme.heading3,
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Quản lý phương thức thanh toán',
+              style: AppTheme.body2,
+              textAlign: TextAlign.center,
             ),
           ],
         ),

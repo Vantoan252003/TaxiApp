@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../general_lib/constants/app_theme.dart';
 
 class RidesScreen extends StatelessWidget {
   const RidesScreen({super.key});
@@ -6,17 +7,13 @@ class RidesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppTheme.primaryWhite,
         elevation: 0,
         title: const Text(
-          'Rides',
-          style: TextStyle(
-            color: Colors.black87,
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-          ),
+          'Chuyến đi',
+          style: AppTheme.heading3,
         ),
         centerTitle: true,
       ),
@@ -25,18 +22,20 @@ class RidesScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.directions_car,
-              size: 80,
-              color: Colors.grey,
+              Icons.directions_car_outlined,
+              size: 64,
+              color: AppTheme.mediumGray,
             ),
             SizedBox(height: 16),
             Text(
-              'No rides yet',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w500,
-                color: Colors.grey,
-              ),
+              'Chưa có chuyến đi nào',
+              style: AppTheme.heading3,
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Các chuyến đi của bạn sẽ hiển thị ở đây',
+              style: AppTheme.body2,
+              textAlign: TextAlign.center,
             ),
           ],
         ),

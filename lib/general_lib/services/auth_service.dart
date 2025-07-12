@@ -61,6 +61,20 @@ class AuthService {
       throw 'Đã xảy ra lỗi không xác định';
     }
   }
+  
+  Future<String> getUserRole() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return 'user';
+
+      final authService = AuthService();
+      final userModel = await authService.getUserData(user.uid);
+
+      return userModel?.role ?? 'user';
+    } catch (e) {
+      return 'default';
+    }
+  }
 
   // Sign out
   Future<void> signOut() async {
