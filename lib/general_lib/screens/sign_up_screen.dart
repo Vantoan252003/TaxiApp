@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import '../constants/app_theme.dart';
 import '../constants/app_constants.dart';
+import '../services/auth_service.dart';
 import 'sign_in_screen.dart';
+import '../../user_lib/screens/home_screen.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -17,9 +19,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  final AuthService _authService = AuthService();
 
   bool _isObscurePassword = true;
   bool _isObscureConfirmPassword = true;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -55,7 +59,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
                 // Title
                 Text(
-                  'Create your account',
+                  'Tạo tài khoản',
                   style: AppTheme.heading1.copyWith(fontSize: 28),
                 ),
 
@@ -64,11 +68,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 // First Name Field
                 _buildInputField(
                   controller: _firstNameController,
-                  label: 'First name',
+                  label: 'Họ tên',
                   keyboardType: TextInputType.name,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your first name';
+                      return 'Vui lòng nhập họ tên';
                     }
                     return null;
                   },
@@ -79,11 +83,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 // Phone Number Field
                 _buildInputField(
                   controller: _phoneController,
-                  label: 'Phone number',
+                  label: 'Số điện thoại',
                   keyboardType: TextInputType.phone,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your phone number';
+                      return 'Vui lòng nhập số điện thoại';
                     }
                     return null;
                   },
@@ -94,11 +98,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 // Email Field
                 _buildInputField(
                   controller: _emailController,
-                  label: 'Email address',
+                  label: 'Email',
                   keyboardType: TextInputType.emailAddress,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your email';
+                      return 'Vui lòng nhập email';
                     }
                     if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
                         .hasMatch(value)) {
@@ -113,7 +117,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 // Password Field
                 _buildPasswordField(
                   controller: _passwordController,
-                  label: 'Password',
+                  label: 'Mật khẩu',
                   isObscure: _isObscurePassword,
                   onToggleVisibility: () {
                     setState(() {
@@ -122,10 +126,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   },
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter a password';
+                      return 'Vui lòng nhập mật khẩu';
                     }
                     if (value.length < 6) {
-                      return 'Password must be at least 6 characters';
+                      return 'Mật khẩu phải có ít nhất 6 ký tự';
                     }
                     return null;
                   },
@@ -136,7 +140,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 // Confirm Password Field
                 _buildPasswordField(
                   controller: _confirmPasswordController,
-                  label: 'Confirm password',
+                  label: 'Nhập lại mật khẩu',
                   isObscure: _isObscureConfirmPassword,
                   onToggleVisibility: () {
                     setState(() {
@@ -145,10 +149,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   },
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please confirm your password';
+                      return 'Vui lòng xác nhận lại mật khẩu';
                     }
                     if (value != _passwordController.text) {
-                      return 'Passwords do not match';
+                      return 'Mật khẩu không khớp';
                     }
                     return null;
                   },
@@ -160,9 +164,19 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: _handleSignUp,
+                    onPressed: _isLoading ? null : _handleSignUp,
                     style: AppTheme.primaryButtonStyle,
-                    child: const Text('Sign Up'),
+                    child: _isLoading
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor:
+                                  AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
+                          )
+                        : const Text('Đăng ký'),
                   ),
                 ),
 
@@ -179,7 +193,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     },
                     style: AppTheme.textButtonStyle,
                     child: Text(
-                      'Already have an account? Log In',
+                      'Bạn đã có tài khoản ? Ấn đây để đăng nhập',
                       style: AppTheme.body2.copyWith(
                         color: AppTheme.primaryBlack,
                         fontWeight: FontWeight.w500,
@@ -264,16 +278,49 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  void _handleSignUp() {
+  void _handleSignUp() async {
     if (_formKey.currentState!.validate()) {
-      // Handle sign up logic here
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Account created successfully!'),
-          backgroundColor: AppTheme.successGreen,
-        ),
-      );
-      Navigator.of(context).pop();
+      setState(() {
+        _isLoading = true;
+      });
+
+      try {
+        await _authService.registerWithEmailAndPassword(
+          _emailController.text.trim(),
+          _passwordController.text.trim(),
+          _firstNameController.text.trim(),
+          _phoneController.text.trim(),
+        );
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Tài khoản được tạo thành công!'),
+              backgroundColor: AppTheme.successGreen,
+            ),
+          );
+
+          // Navigate to home screen
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => const HomeScreen()),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(e.toString()),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      }
     }
   }
 }

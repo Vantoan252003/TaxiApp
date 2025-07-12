@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'general_lib/screens/splash_screen.dart';
-import 'user_lib/screens/home_screen.dart';
+import 'general_lib/screens/auth_wrapper.dart';
+import 'package:firebase_core/firebase_core.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(const MyApp());
 }
 
@@ -23,7 +26,7 @@ class MyApp extends StatelessWidget {
         fontFamily: 'System',
       ),
       home: const SplashScreen(
-        homeScreen: HomeScreen(),
+        homeScreen: AuthWrapper(),
       ),
     );
   }

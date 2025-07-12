@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../widgets/onboarding/app_header_section.dart';
 import '../widgets/onboarding/auth_buttons_section.dart';
 import '../widgets/onboarding/terms_and_privacy_text.dart';
-import '../services/first_launch_service.dart';
 import '../constants/app_theme.dart';
 import '../constants/app_constants.dart';
 import 'sign_up_screen.dart';
@@ -12,20 +11,6 @@ class OnboardingScreen extends StatelessWidget {
   final Widget? homeScreen;
 
   const OnboardingScreen({super.key, this.homeScreen});
-
-  Future<void> _markAsLaunched() async {
-    await FirstLaunchService.markAsLaunched();
-  }
-
-  void _navigateToHome(BuildContext context) {
-    if (homeScreen != null) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => homeScreen!),
-      );
-    } else {
-      Navigator.of(context).pop();
-    }
-  }
 
   Future<void> _handleSignUp(BuildContext context) async {
     // Navigate to Sign Up screen

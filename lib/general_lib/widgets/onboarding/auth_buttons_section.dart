@@ -20,7 +20,7 @@ class AuthButtonsSection extends StatelessWidget {
           child: ElevatedButton(
             onPressed: onSignUpPressed,
             style: AppTheme.primaryButtonStyle,
-            child: const Text('Sign Up'),
+            child: const Text('Đăng ký'),
           ),
         ),
         const SizedBox(height: 16),
@@ -29,7 +29,7 @@ class AuthButtonsSection extends StatelessWidget {
           child: OutlinedButton(
             onPressed: onLogInPressed,
             style: AppTheme.secondaryButtonStyle,
-            child: const Text('Sign In'),
+            child: const Text('Đăng nhập'),
           ),
         ),
       ],

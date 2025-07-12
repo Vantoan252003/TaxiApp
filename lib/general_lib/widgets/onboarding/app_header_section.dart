@@ -39,13 +39,14 @@ class AppHeaderSection extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Get there with ease',
+              //dịch sang tiếng Việt
+              'Taxi Kỳ Anh',
               style: AppTheme.heading1.copyWith(fontSize: 24),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Text(
-              'Your trusted ride, anytime, anywhere. Book, track, and communicate with drivers effortlessly.',
+              'Ứng dụng đặt taxi nhanh chóng và tiện lợi',
               style: AppTheme.body1.copyWith(fontSize: 14),
               textAlign: TextAlign.center,
               maxLines: 3,

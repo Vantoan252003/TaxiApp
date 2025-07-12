@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "881922203911",
+    "project_id": "taxikyanh-d3c2d",
+    "storage_bucket": "taxikyanh-d3c2d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:881922203911:android:a2513f24d04e70d242a5a2",
+        "android_client_info": {
+          "package_name": "com.example.taxi_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBk5zVDyZtSjLta85ihBY9OmOhVEGgco04"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

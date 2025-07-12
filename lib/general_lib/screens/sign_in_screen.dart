@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import '../constants/app_theme.dart';
 import '../constants/app_constants.dart';
+import '../services/auth_service.dart';
+import 'sign_up_screen.dart';
+import '../../user_lib/screens/home_screen.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -13,8 +16,10 @@ class _SignInScreenState extends State<SignInScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final AuthService _authService = AuthService();
 
   bool _isObscurePassword = true;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -47,7 +52,7 @@ class _SignInScreenState extends State<SignInScreen> {
 
                 // Title
                 Text(
-                  'Sign In',
+                  'Đăng nhập',
                   style: AppTheme.heading1.copyWith(fontSize: 28),
                 ),
 
@@ -56,11 +61,11 @@ class _SignInScreenState extends State<SignInScreen> {
                 // Email/Phone Field
                 _buildInputField(
                   controller: _emailController,
-                  label: 'Phone number or Email',
+                  label: 'Số điện thoại hoặc email',
                   keyboardType: TextInputType.emailAddress,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your email or phone number';
+                      return 'Vui lòng nhập số điện thoại hoặc email';
                     }
                     return null;
                   },
@@ -71,7 +76,7 @@ class _SignInScreenState extends State<SignInScreen> {
                 // Password Field
                 _buildPasswordField(
                   controller: _passwordController,
-                  label: 'Password',
+                  label: 'Mật khẩu',
                   isObscure: _isObscurePassword,
                   onToggleVisibility: () {
                     setState(() {
@@ -80,7 +85,7 @@ class _SignInScreenState extends State<SignInScreen> {
                   },
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your password';
+                      return 'Vui lòng nhập mật khẩu';
                     }
                     return null;
                   },
@@ -101,7 +106,7 @@ class _SignInScreenState extends State<SignInScreen> {
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
                     child: Text(
-                      'Forgot Password?',
+                      'Quên mật khẩu ?',
                       style: AppTheme.body2.copyWith(
                         color: AppTheme.mediumGray,
                         fontWeight: FontWeight.w500,
@@ -116,9 +121,19 @@ class _SignInScreenState extends State<SignInScreen> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: _handleSignIn,
+                    onPressed: _isLoading ? null : _handleSignIn,
                     style: AppTheme.secondaryButtonStyle,
-                    child: const Text('Sign In'),
+                    child: _isLoading
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor:
+                                  AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
+                          )
+                        : const Text('Đăng nhập'),
                   ),
                 ),
 
@@ -128,11 +143,15 @@ class _SignInScreenState extends State<SignInScreen> {
                 Center(
                   child: TextButton(
                     onPressed: () {
-                      Navigator.of(context).pop();
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const SignUpScreen(),
+                        ),
+                      );
                     },
                     style: AppTheme.textButtonStyle,
                     child: Text(
-                      'Don\'t have an account? Sign Up',
+                      'Bạn chưa có tài khoản ? Ấn vào đây để đăng ký',
                       style: AppTheme.body2.copyWith(
                         color: AppTheme.primaryBlack,
                         fontWeight: FontWeight.w500,
@@ -217,16 +236,41 @@ class _SignInScreenState extends State<SignInScreen> {
     );
   }
 
-  void _handleSignIn() {
+  void _handleSignIn() async {
     if (_formKey.currentState!.validate()) {
-      // Handle sign in logic here
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Sign in successful!'),
-          backgroundColor: AppTheme.successGreen,
-        ),
-      );
-      Navigator.of(context).pop();
+      setState(() {
+        _isLoading = true;
+      });
+
+      try {
+        await _authService.signInWithEmailAndPassword(
+          _emailController.text.trim(),
+          _passwordController.text.trim(),
+        );
+
+        if (mounted) {
+          // Navigate to home screen
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => const HomeScreen()),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                  "Tài khoản hoặc mật khẩu không đúng! Vui lòng nhập lại."),
+              backgroundColor: AppTheme.warningRed,
+            ),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      }
     }
   }
 }

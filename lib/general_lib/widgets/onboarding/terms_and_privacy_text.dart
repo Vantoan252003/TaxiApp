@@ -10,17 +10,17 @@ class TermsAndPrivacyText extends StatelessWidget {
       text: TextSpan(
         style: AppTheme.caption,
         children: [
-          const TextSpan(text: 'By continuing, you agree to our '),
+          const TextSpan(text: 'Bằng việc tiếp tục, bạn đồng ý với '),
           TextSpan(
-            text: 'Terms of Service',
+            text: 'Điều khoản dịch vụ',
             style: AppTheme.caption.copyWith(
               fontWeight: FontWeight.w600,
               color: AppTheme.primaryBlack,
             ),
           ),
-          const TextSpan(text: ' and '),
+          const TextSpan(text: ' và '),
           TextSpan(
-            text: 'Privacy Policy',
+            text: 'Chính sách bảo mật',
             style: AppTheme.caption.copyWith(
               fontWeight: FontWeight.w600,
               color: AppTheme.primaryBlack,
