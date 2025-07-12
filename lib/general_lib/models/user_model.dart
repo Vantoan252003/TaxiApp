@@ -5,6 +5,7 @@ class UserModel {
   final String phoneNumber;
   final DateTime createdAt;
   final String? photoURL;
+  final String? role;
 
   UserModel({
     required this.uid,
@@ -13,6 +14,7 @@ class UserModel {
     required this.phoneNumber,
     required this.createdAt,
     this.photoURL,
+    this.role,
   });
 
   // Convert to Map for Firestore
@@ -24,6 +26,7 @@ class UserModel {
       'phoneNumber': phoneNumber,
       'createdAt': createdAt.millisecondsSinceEpoch,
       'photoURL': photoURL,
+      'role': role,
     };
   }
 
@@ -36,6 +39,7 @@ class UserModel {
       phoneNumber: map['phoneNumber'] ?? '',
       createdAt: DateTime.fromMillisecondsSinceEpoch(map['createdAt'] ?? 0),
       photoURL: map['photoURL'],
+      role: map['role'] ?? 'user', //mặc định vai trò là người dùng
     );
   }
 
@@ -57,6 +61,7 @@ class UserModel {
     String? phoneNumber,
     DateTime? createdAt,
     String? photoURL,
+    String? role,
   }) {
     return UserModel(
       uid: uid ?? this.uid,
@@ -65,11 +70,12 @@ class UserModel {
       phoneNumber: phoneNumber ?? this.phoneNumber,
       createdAt: createdAt ?? this.createdAt,
       photoURL: photoURL ?? this.photoURL,
+      role: role ?? this.role,
     );
   }
 
   @override
   String toString() {
-    return 'UserModel(uid: $uid, email: $email, firstName: $firstName, phoneNumber: $phoneNumber)';
+    return 'UserModel(uid: $uid, email: $email, firstName: $firstName, phoneNumber: $phoneNumber, role: $role)';
   }
 }
