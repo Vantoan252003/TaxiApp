@@ -12,8 +12,20 @@ class AuthService {
 
   // Sign in with email and password
   Future<UserCredential?> signInWithEmailAndPassword(
-      String email, String password) async {
+      String emailOrPhone, String password) async {
     try {
+      String email = emailOrPhone;
+
+      // Check if input is phone number (starts with 0 and contains only digits)
+      if (_isPhoneNumber(emailOrPhone)) {
+        // Find user by phone number to get their email
+        String? userEmail = await _getEmailByPhoneNumber(emailOrPhone);
+        if (userEmail == null) {
+          throw 'Không tìm thấy tài khoản với số điện thoại này';
+        }
+        email = userEmail;
+      }
+
       UserCredential result = await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
@@ -23,6 +35,37 @@ class AuthService {
       throw _handleAuthException(e);
     } catch (e) {
       throw 'Đã xảy ra lỗi không xác định';
+    }
+  }
+
+  // Helper method to check if input is phone number
+  bool _isPhoneNumber(String input) {
+    String cleaned = input.replaceAll(RegExp(r'[\s\-\(\)]'), '');
+    return RegExp(r'^0\d{9,10}$').hasMatch(cleaned);
+  }
+
+  // Helper method to get email by phone number from Firestore
+  Future<String?> _getEmailByPhoneNumber(String phoneNumber) async {
+    try {
+      // Clean and convert phone number: 0378... -> +84378...
+      String cleanedPhone = phoneNumber.replaceAll(RegExp(r'[\s\-\(\)]'), '');
+      String internationalPhone = '+84${cleanedPhone.substring(1)}';
+
+      QuerySnapshot querySnapshot = await _firestore
+          .collection('users')
+          .where('phoneNumber', isEqualTo: internationalPhone)
+          .limit(1)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        Map<String, dynamic> userData =
+            querySnapshot.docs.first.data() as Map<String, dynamic>;
+        return userData['email'];
+      }
+
+      return null;
+    } catch (e) {
+      return null;
     }
   }
 
@@ -61,7 +104,7 @@ class AuthService {
       throw 'Đã xảy ra lỗi không xác định';
     }
   }
-  
+
   Future<String> getUserRole() async {
     try {
       final user = FirebaseAuth.instance.currentUser;
@@ -115,9 +158,11 @@ class AuthService {
   String _handleAuthException(FirebaseAuthException e) {
     switch (e.code) {
       case 'user-not-found':
-        return 'Không tìm thấy tài khoản với email này';
+        return 'Không tìm thấy tài khoản với thông tin này';
       case 'wrong-password':
         return 'Mật khẩu không chính xác';
+      case 'invalid-credential':
+        return 'Thông tin đăng nhập không chính xác';
       case 'email-already-in-use':
         return 'Email này đã được sử dụng';
       case 'weak-password':

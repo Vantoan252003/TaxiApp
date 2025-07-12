@@ -62,11 +62,21 @@ class _SignInScreenState extends State<SignInScreen> {
                 _buildInputField(
                   controller: _emailController,
                   label: 'Số điện thoại hoặc email',
-                  keyboardType: TextInputType.emailAddress,
+                  keyboardType: TextInputType.text,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Vui lòng nhập số điện thoại hoặc email';
                     }
+                    
+                    // Check if it's a phone number or email
+                    String cleaned = value.replaceAll(RegExp(r'[\s\-\(\)]'), '');
+                    bool isPhone = RegExp(r'^0\d{9,10}$').hasMatch(cleaned);
+                    bool isEmail = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value);
+                    
+                    if (!isPhone && !isEmail) {
+                      return 'Vui lòng nhập số điện thoại hoặc email hợp lệ';
+                    }
+                    
                     return null;
                   },
                 ),
