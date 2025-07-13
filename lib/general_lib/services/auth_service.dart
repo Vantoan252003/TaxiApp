@@ -38,16 +38,13 @@ class AuthService {
     }
   }
 
-  // Helper method to check if input is phone number
   bool _isPhoneNumber(String input) {
     String cleaned = input.replaceAll(RegExp(r'[\s\-\(\)]'), '');
     return RegExp(r'^0\d{9,10}$').hasMatch(cleaned);
   }
 
-  // Helper method to get email by phone number from Firestore
   Future<String?> _getEmailByPhoneNumber(String phoneNumber) async {
     try {
-      // Clean and convert phone number: 0378... -> +84378...
       String cleanedPhone = phoneNumber.replaceAll(RegExp(r'[\s\-\(\)]'), '');
       String internationalPhone = '+84${cleanedPhone.substring(1)}';
 
@@ -71,7 +68,7 @@ class AuthService {
 
   // Register with email and password
   Future<UserCredential?> registerWithEmailAndPassword(String email,
-      String password, String firstName, String phoneNumber) async {
+      String password, String firstName, String phoneNumber, String role) async {
     try {
       UserCredential result = await _auth.createUserWithEmailAndPassword(
         email: email,
@@ -86,6 +83,7 @@ class AuthService {
           firstName: firstName,
           phoneNumber: phoneNumber,
           createdAt: DateTime.now(),
+          role: 'user',
         );
 
         await _firestore

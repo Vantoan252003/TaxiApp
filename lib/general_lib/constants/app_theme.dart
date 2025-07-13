@@ -16,6 +16,7 @@ class AppTheme {
   static const Color accentBlue = Color(0xFF007AFF);
   static const Color successGreen = Color(0xFF34C759);
   static const Color warningRed = Color(0xFFFF3B30);
+  static const Color warningOrange = Color(0xFFFF9500);
 
   // Text Styles - Clean Typography
   static const TextStyle heading1 = TextStyle(
@@ -98,7 +99,6 @@ class AppTheme {
     textStyle: buttonText,
   );
 
-  // Card Styles - Clean & Subtle
   static BoxDecoration cardDecoration = BoxDecoration(
     color: cardBackground,
     borderRadius: BorderRadius.circular(12),

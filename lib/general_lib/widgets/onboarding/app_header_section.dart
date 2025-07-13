@@ -40,7 +40,7 @@ class AppHeaderSection extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               //dịch sang tiếng Việt
-              'Taxi Kỳ Anh',
+              'Mozi',
               style: AppTheme.heading1.copyWith(fontSize: 24),
               textAlign: TextAlign.center,
             ),

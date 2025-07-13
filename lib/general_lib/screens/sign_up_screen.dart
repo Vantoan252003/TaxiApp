@@ -290,6 +290,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           _passwordController.text.trim(),
           _firstNameController.text.trim(),
           _phoneController.text.trim(),
+          'user',
         );
 
         if (mounted) {

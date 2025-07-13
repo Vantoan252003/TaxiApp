@@ -14,7 +14,7 @@ class UserModel {
     required this.phoneNumber,
     required this.createdAt,
     this.photoURL,
-    this.role,
+    required this.role,
   });
 
   // Convert to Map for Firestore
