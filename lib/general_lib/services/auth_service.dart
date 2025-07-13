@@ -34,7 +34,7 @@ class AuthService {
     } on FirebaseAuthException catch (e) {
       throw _handleAuthException(e);
     } catch (e) {
-      throw 'Đã xảy ra lỗi không xác định';
+      throw 'Đã xảy ra lỗi không xác định!';
     }
   }
 
@@ -67,8 +67,12 @@ class AuthService {
   }
 
   // Register with email and password
-  Future<UserCredential?> registerWithEmailAndPassword(String email,
-      String password, String firstName, String phoneNumber, String role) async {
+  Future<UserCredential?> registerWithEmailAndPassword(
+      String email,
+      String password,
+      String firstName,
+      String phoneNumber,
+      String role) async {
     try {
       UserCredential result = await _auth.createUserWithEmailAndPassword(
         email: email,
@@ -113,7 +117,7 @@ class AuthService {
 
       return userModel?.role ?? 'user';
     } catch (e) {
-      return 'default';
+      return 'default!';
     }
   }
 
