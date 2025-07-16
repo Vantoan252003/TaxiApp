@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
-import 'sign_in_screen.dart';
+import 'phone_input_screen.dart';
 import '../../user_lib/screens/home_screen.dart';
 
 class AuthWrapper extends StatelessWidget {
@@ -10,7 +10,7 @@ class AuthWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AuthService authService = AuthService();
-    
+
     return StreamBuilder<User?>(
       stream: authService.authStateChanges,
       builder: (context, snapshot) {
@@ -22,14 +22,14 @@ class AuthWrapper extends StatelessWidget {
             ),
           );
         }
-        
+
         // If user is logged in, show home screen
         if (snapshot.hasData && snapshot.data != null) {
           return const HomeScreen();
         }
-        
-        // If user is not logged in, show sign in screen
-        return const SignInScreen();
+
+        // If user is not logged in, show phone input screen
+        return const PhoneInputScreen();
       },
     );
   }

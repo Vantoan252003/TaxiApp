@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../general_lib/constants/app_theme.dart';
-import '../../general_lib/services/auth_service.dart';
 
 class ProfileHeader extends StatelessWidget {
   const ProfileHeader({super.key});
@@ -72,38 +71,6 @@ class ProfileHeader extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
 
-              const SizedBox(height: 20),
-
-              // Role-based content
-              FutureBuilder<String>(
-                future: AuthService().getUserRole(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const CircularProgressIndicator();
-                  }
-                  final role = snapshot.data ?? 'user';
-                  if (role == 'driver') {
-                    return Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        _buildStatItem('12', 'Chuyến đi'),
-                        _buildDivider(),
-                        _buildStatItem('4.8', 'Đánh giá'),
-                        _buildDivider(),
-                        _buildStatItem('2', 'Năm'),
-                      ],
-                    );
-                  } else {
-                    return Text(
-                      'Bạn đang là người dùng',
-                      style: AppTheme.body2.copyWith(
-                        color: AppTheme.mediumGray,
-                      ),
-                      textAlign: TextAlign.center,
-                    );
-                  }
-                },
-              ),
             ],
           ),
         ),
@@ -119,32 +86,6 @@ class ProfileHeader extends StatelessWidget {
     );
   }
 
-  Widget _buildStatItem(String value, String label) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: AppTheme.heading3.copyWith(
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: AppTheme.caption.copyWith(
-            color: AppTheme.mediumGray,
-          ),
-        ),
-      ],
-    );
-  }
 
-  Widget _buildDivider() {
-    return Container(
-      width: 1,
-      height: 32,
-      color: AppTheme.borderColor,
-    );
-  }
+
 }

@@ -137,7 +137,7 @@ class _SplashScreenState extends State<SplashScreen> {
                 return Opacity(
                   opacity: value,
                   child: Text(
-                    'Mozi',
+                    'Chào mừng bạn đến với Mozi - Ứng dụng đặt taxi thông minh',
                     style: AppTheme.body1.copyWith(
                       fontSize: 16,
                       color: AppTheme.mediumGray,

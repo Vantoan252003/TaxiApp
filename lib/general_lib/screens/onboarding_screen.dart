@@ -1,28 +1,19 @@
 import 'package:flutter/material.dart';
 import '../widgets/onboarding/app_header_section.dart';
-import '../widgets/onboarding/auth_buttons_section.dart';
 import '../widgets/onboarding/terms_and_privacy_text.dart';
 import '../constants/app_theme.dart';
 import '../constants/app_constants.dart';
-import 'sign_up_screen.dart';
-import 'sign_in_screen.dart';
+import 'phone_input_screen.dart';
 
 class OnboardingScreen extends StatelessWidget {
   final Widget? homeScreen;
 
   const OnboardingScreen({super.key, this.homeScreen});
 
-  Future<void> _handleSignUp(BuildContext context) async {
-    // Navigate to Sign Up screen
+  Future<void> _handleGetStarted(BuildContext context) async {
+    // Navigate to Phone Input screen
     Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => const SignUpScreen()),
-    );
-  }
-
-  Future<void> _handleLogIn(BuildContext context) async {
-    // Navigate to Sign In screen
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => const SignInScreen()),
+      MaterialPageRoute(builder: (context) => const PhoneInputScreen()),
     );
   }
 
@@ -37,9 +28,15 @@ class OnboardingScreen extends StatelessWidget {
             children: [
               const AppHeaderSection(),
               const SizedBox(height: 40),
-              AuthButtonsSection(
-                onSignUpPressed: () => _handleSignUp(context),
-                onLogInPressed: () => _handleLogIn(context),
+
+              // Get Started Button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => _handleGetStarted(context),
+                  style: AppTheme.primaryButtonStyle,
+                  child: const Text('Bắt đầu'),
+                ),
               ),
 
               const SizedBox(height: 24),

@@ -1,12 +1,21 @@
 import 'package:flutter/material.dart';
 import '../constants/app_theme.dart';
 import '../constants/app_constants.dart';
-import '../services/auth_service.dart';
+import '../core/validators/form_validators.dart';
+import '../services/registration_service.dart';
+import '../widgets/forms/custom_text_field.dart';
+import '../widgets/forms/custom_button.dart';
 import 'sign_in_screen.dart';
-import '../../user_lib/screens/home_screen.dart';
 
 class SignUpScreen extends StatefulWidget {
-  const SignUpScreen({super.key});
+  final String? phoneNumber;
+  final bool isPhoneVerified;
+
+  const SignUpScreen({
+    super.key,
+    this.phoneNumber,
+    this.isPhoneVerified = false,
+  });
 
   @override
   State<SignUpScreen> createState() => _SignUpScreenState();
@@ -15,21 +24,40 @@ class SignUpScreen extends StatefulWidget {
 class _SignUpScreenState extends State<SignUpScreen> {
   final _formKey = GlobalKey<FormState>();
   final _firstNameController = TextEditingController();
-  final _phoneController = TextEditingController();
+  final _lastNameController = TextEditingController();
   final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  final AuthService _authService = AuthService();
 
+  // Validators
+  final _nameValidator = NameValidator();
+  final _emailValidator = EmailValidator();
+  final _passwordValidator = PasswordValidator();
+
+  bool _isLoading = false;
   bool _isObscurePassword = true;
   bool _isObscureConfirmPassword = true;
-  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.phoneNumber != null && widget.isPhoneVerified) {
+      // Remove leading 0 for API format (API expects without 0)
+      String phoneForApi = widget.phoneNumber!;
+      if (phoneForApi.startsWith('0')) {
+        phoneForApi = phoneForApi.substring(1);
+      }
+      _phoneController.text = phoneForApi;
+    }
+  }
 
   @override
   void dispose() {
     _firstNameController.dispose();
-    _phoneController.dispose();
+    _lastNameController.dispose();
     _emailController.dispose();
+    _phoneController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
@@ -43,7 +71,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         backgroundColor: AppTheme.backgroundColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.close, color: AppTheme.primaryBlack),
+          icon: const Icon(Icons.arrow_back, color: AppTheme.primaryBlack),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
@@ -59,100 +87,164 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
                 // Title
                 Text(
-                  'Tạo tài khoản',
+                  'Đăng ký tài khoản',
                   style: AppTheme.heading1.copyWith(fontSize: 28),
+                ),
+
+                const SizedBox(height: 8),
+
+                // Subtitle
+                Text(
+                  'Điền thông tin để tạo tài khoản mới',
+                  style: AppTheme.body2.copyWith(
+                    color: AppTheme.mediumGray,
+                  ),
                 ),
 
                 const SizedBox(height: 40),
 
                 // First Name Field
-                _buildInputField(
+                CustomTextField(
                   controller: _firstNameController,
-                  label: 'Họ tên',
-                  keyboardType: TextInputType.name,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Vui lòng nhập họ tên';
-                    }
-                    return null;
-                  },
+                  label: 'Tên',
+                  hintText: 'Nhập tên của bạn',
+                  validator: (value) =>
+                      _nameValidator.validate(value ?? '').errorMessage,
                 ),
 
                 const SizedBox(height: 16),
 
-                // Phone Number Field
-                _buildInputField(
-                  controller: _phoneController,
-                  label: 'Số điện thoại',
-                  keyboardType: TextInputType.phone,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Vui lòng nhập số điện thoại';
-                    }
-                    return null;
-                  },
+                // Last Name Field
+                CustomTextField(
+                  controller: _lastNameController,
+                  label: 'Họ',
+                  hintText: 'Nhập họ của bạn',
+                  validator: (value) =>
+                      _nameValidator.validate(value ?? '').errorMessage,
                 ),
 
                 const SizedBox(height: 16),
 
                 // Email Field
-                _buildInputField(
+                CustomTextField(
                   controller: _emailController,
                   label: 'Email',
+                  hintText: 'Nhập email của bạn',
                   keyboardType: TextInputType.emailAddress,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Vui lòng nhập email';
-                    }
-                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
-                        .hasMatch(value)) {
-                      return 'Please enter a valid email';
-                    }
-                    return null;
-                  },
+                  validator: (value) =>
+                      _emailValidator.validate(value ?? '').errorMessage,
+                ),
+
+                const SizedBox(height: 16),
+
+                // Phone Field
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Số điện thoại',
+                      style: AppTheme.body2.copyWith(
+                        fontWeight: FontWeight.w500,
+                        color: AppTheme.darkGray,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: widget.isPhoneVerified
+                            ? AppTheme.backgroundColor
+                            : AppTheme.primaryWhite,
+                        border: Border.all(
+                          color: AppTheme.borderColor,
+                          width: 1,
+                        ),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          // Country Code
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 16,
+                            ),
+                            decoration: const BoxDecoration(
+                              border: Border(
+                                right: BorderSide(
+                                  color: AppTheme.borderColor,
+                                  width: 1,
+                                ),
+                              ),
+                            ),
+                            child: Text(
+                              '+84',
+                              style: AppTheme.body1.copyWith(
+                                color: AppTheme.darkGray,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                          // Phone Number
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
 
                 const SizedBox(height: 16),
 
                 // Password Field
-                _buildPasswordField(
+                CustomTextField(
                   controller: _passwordController,
                   label: 'Mật khẩu',
-                  isObscure: _isObscurePassword,
-                  onToggleVisibility: () {
-                    setState(() {
-                      _isObscurePassword = !_isObscurePassword;
-                    });
-                  },
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Vui lòng nhập mật khẩu';
-                    }
-                    if (value.length < 6) {
-                      return 'Mật khẩu phải có ít nhất 6 ký tự';
-                    }
-                    return null;
-                  },
+                  hintText: 'Nhập mật khẩu',
+                  isObscured: _isObscurePassword,
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _isObscurePassword
+                          ? Icons.visibility_off
+                          : Icons.visibility,
+                      color: AppTheme.mediumGray,
+                      size: 20,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _isObscurePassword = !_isObscurePassword;
+                      });
+                    },
+                  ),
+                  validator: (value) =>
+                      _passwordValidator.validate(value ?? '').errorMessage,
                 ),
 
                 const SizedBox(height: 16),
 
                 // Confirm Password Field
-                _buildPasswordField(
+                CustomTextField(
                   controller: _confirmPasswordController,
                   label: 'Nhập lại mật khẩu',
-                  isObscure: _isObscureConfirmPassword,
-                  onToggleVisibility: () {
-                    setState(() {
-                      _isObscureConfirmPassword = !_isObscureConfirmPassword;
-                    });
-                  },
+                  hintText: 'Nhập lại mật khẩu',
+                  isObscured: _isObscureConfirmPassword,
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _isObscureConfirmPassword
+                          ? Icons.visibility_off
+                          : Icons.visibility,
+                      color: AppTheme.mediumGray,
+                      size: 20,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _isObscureConfirmPassword = !_isObscureConfirmPassword;
+                      });
+                    },
+                  ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Vui lòng xác nhận lại mật khẩu';
+                      return 'Vui lòng xác nhận mật khẩu';
                     }
                     if (value != _passwordController.text) {
-                      return 'Mật khẩu không khớp';
+                      return 'Mật khẩu xác nhận không khớp';
                     }
                     return null;
                   },
@@ -161,42 +253,64 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 const SizedBox(height: 40),
 
                 // Sign Up Button
-                SizedBox(
+                CustomButton(
+                  text: 'Đăng ký',
                   width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _handleSignUp,
-                    style: AppTheme.primaryButtonStyle,
-                    child: _isLoading
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor:
-                                  AlwaysStoppedAnimation<Color>(Colors.white),
-                            ),
-                          )
-                        : const Text('Đăng ký'),
-                  ),
+                  isLoading: _isLoading,
+                  onPressed: _handleSignUp,
                 ),
 
                 const SizedBox(height: 20),
 
                 // Already have account
                 Center(
-                  child: TextButton(
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                            builder: (context) => const SignInScreen()),
-                      );
-                    },
-                    style: AppTheme.textButtonStyle,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Đã có tài khoản? ',
+                        style: AppTheme.body2.copyWith(
+                          color: AppTheme.mediumGray,
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => const SignInScreen(),
+                            ),
+                          );
+                        },
+                        style: TextButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                        child: Text(
+                          'Đăng nhập',
+                          style: AppTheme.body2.copyWith(
+                            color: AppTheme.primaryBlack,
+                            fontWeight: FontWeight.w600,
+                            decoration: TextDecoration.underline,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+
+                // Terms and conditions
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Text(
-                      'Bạn đã có tài khoản ? Ấn đây để đăng nhập',
-                      style: AppTheme.body2.copyWith(
-                        color: AppTheme.primaryBlack,
-                        fontWeight: FontWeight.w500,
+                      'Bằng việc đăng ký, bạn đồng ý với\nĐiều khoản sử dụng và Chính sách bảo mật',
+                      textAlign: TextAlign.center,
+                      style: AppTheme.caption.copyWith(
+                        color: AppTheme.mediumGray,
+                        height: 1.4,
                       ),
                     ),
                   ),
@@ -209,75 +323,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  Widget _buildInputField({
-    required TextEditingController controller,
-    required String label,
-    required TextInputType keyboardType,
-    required String? Function(String?) validator,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: AppTheme.body2.copyWith(
-            fontWeight: FontWeight.w500,
-            color: AppTheme.darkGray,
-          ),
-        ),
-        const SizedBox(height: 8),
-        TextFormField(
-          controller: controller,
-          keyboardType: keyboardType,
-          decoration: AppTheme.inputDecoration.copyWith(
-            hintText: label,
-          ),
-          style: AppTheme.body1,
-          validator: validator,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPasswordField({
-    required TextEditingController controller,
-    required String label,
-    required bool isObscure,
-    required VoidCallback onToggleVisibility,
-    required String? Function(String?) validator,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: AppTheme.body2.copyWith(
-            fontWeight: FontWeight.w500,
-            color: AppTheme.darkGray,
-          ),
-        ),
-        const SizedBox(height: 8),
-        TextFormField(
-          controller: controller,
-          obscureText: isObscure,
-          decoration: AppTheme.inputDecoration.copyWith(
-            hintText: label,
-            suffixIcon: IconButton(
-              icon: Icon(
-                isObscure ? Icons.visibility_off : Icons.visibility,
-                color: AppTheme.mediumGray,
-                size: 20,
-              ),
-              onPressed: onToggleVisibility,
-            ),
-          ),
-          style: AppTheme.body1,
-          validator: validator,
-        ),
-      ],
-    );
-  }
-
   void _handleSignUp() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
@@ -285,25 +330,28 @@ class _SignUpScreenState extends State<SignUpScreen> {
       });
 
       try {
-        await _authService.registerWithEmailAndPassword(
-          _emailController.text.trim(),
-          _passwordController.text.trim(),
-          _firstNameController.text.trim(),
-          _phoneController.text.trim(),
-          'user',
+        await RegistrationService.register(
+          email: _emailController.text.trim(),
+          phone: _phoneController.text.trim(), 
+          password: _passwordController.text.trim(),
+          firstName: _firstNameController.text.trim(),
+          lastName: _lastNameController.text.trim(),
         );
 
         if (mounted) {
+          // Show success message
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Tài khoản được tạo thành công!'),
+              content: Text('Đăng ký thành công!'),
               backgroundColor: AppTheme.successGreen,
             ),
           );
 
-          // Navigate to home screen
+          // Navigate to sign in screen
           Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const HomeScreen()),
+            MaterialPageRoute(
+              builder: (context) => const SignInScreen(),
+            ),
           );
         }
       } catch (e) {
@@ -311,7 +359,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(e.toString()),
-              backgroundColor: Colors.red,
+              backgroundColor: AppTheme.warningRed,
             ),
           );
         }

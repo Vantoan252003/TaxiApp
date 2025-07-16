@@ -38,12 +38,6 @@ class CustomBottomNavigationBar extends StatelessWidget {
                 index: 0,
               ),
               _buildNavItem(
-                icon: Icons.directions_car_outlined,
-                activeIcon: Icons.directions_car,
-                label: 'Rides',
-                index: 1,
-              ),
-              _buildNavItem(
                 icon: Icons.account_balance_wallet_outlined,
                 activeIcon: Icons.account_balance_wallet,
                 label: 'Wallet',

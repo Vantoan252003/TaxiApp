@@ -44,7 +44,7 @@ class ProfileMenuSection extends StatelessWidget {
                   ),
               ],
             );
-          }).toList(),
+          }),
         ],
       ),
     );

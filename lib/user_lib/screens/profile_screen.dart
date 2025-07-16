@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../general_lib/constants/app_theme.dart';
 import '../../general_lib/services/auth_service.dart';
-import '../../general_lib/screens/sign_in_screen.dart';
+import '../../general_lib/screens/phone_input_screen.dart';
 import '../widgets/profile_header.dart';
 import '../widgets/profile_menu_section.dart';
 import '../widgets/logout_dialog.dart';
@@ -104,7 +104,7 @@ class ProfileScreen extends StatelessWidget {
       if (context.mounted) {
         Navigator.of(context).pop();
         Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => const SignInScreen()),
+          MaterialPageRoute(builder: (context) => const PhoneInputScreen()),
           (route) => false,
         );
       }

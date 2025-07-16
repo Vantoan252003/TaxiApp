@@ -1,7 +1,7 @@
 // App Constants
 class AppConstants {
   // App Info
-  static const String appName = 'Taxi App';
+  static const String appName = 'Mozi';
   static const String appVersion = '1.0.0';
 
   // API Configuration
@@ -18,8 +18,24 @@ class AppConstants {
   static const String driverRole = 'driver';
   static const String vendorRole = 'vendor';
 
+  // Location Messages
+  static const String loadingLocationText = 'Đang lấy vị trí...';
+  static const String errorLocationText = 'Không thể lấy vị trí hiện tại';
+  static const String destinationPlaceholder =
+      'Nhập vào để đặt xe máy, xe hơi ...';
+
+  // Feature Messages
+  static const String featureInDevelopment = 'đang phát triển';
+  static const String destinationFeature = 'Chức năng chọn điểm đến';
+
+  // Default Values
+  static const String defaultUserName = 'Người dùng';
+  static const String greetingMessage = 'Chúc bạn một ngày tốt lành!';
+
   // UI Constants
-  static const double defaultPadding = 24.0;
+  static const double defaultPadding = 16.0;
+  static const double cardBorderRadius = 20.0;
+  static const double iconSize = 28.0;
   static const double defaultRadius = 12.0;
   static const double cardRadius = 16.0;
 
