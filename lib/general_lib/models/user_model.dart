@@ -1,81 +1,83 @@
 class UserModel {
-  final String uid;
+  final String userId;
   final String email;
-  final String firstName;
   final String phoneNumber;
-  final DateTime createdAt;
-  final String? photoURL;
-  final String? role;
+  final String? accessToken;
+  final String? refreshToken;
+  final String? tokenType;
+  final int? expiresIn;
+  final List<String>? roles;
+  final String? userType;
 
   UserModel({
-    required this.uid,
+    required this.userId,
     required this.email,
-    required this.firstName,
     required this.phoneNumber,
-    required this.createdAt,
-    this.photoURL,
-    required this.role,
+    this.accessToken,
+    this.refreshToken,
+    this.tokenType,
+    this.expiresIn,
+    this.roles,
+    this.userType,
   });
-
-  // Convert to Map for Firestore
-  Map<String, dynamic> toMap() {
-    return {
-      'uid': uid,
-      'email': email,
-      'firstName': firstName,
-      'phoneNumber': phoneNumber,
-      'createdAt': createdAt.millisecondsSinceEpoch,
-      'photoURL': photoURL,
-      'role': role,
-    };
-  }
-
-  // Create from Firestore Map
-  factory UserModel.fromMap(Map<String, dynamic> map) {
-    return UserModel(
-      uid: map['uid'] ?? '',
-      email: map['email'] ?? '',
-      firstName: map['firstName'] ?? '',
-      phoneNumber: map['phoneNumber'] ?? '',
-      createdAt: DateTime.fromMillisecondsSinceEpoch(map['createdAt'] ?? 0),
-      photoURL: map['photoURL'],
-      role: map['role'] ?? 'user', //mặc định vai trò là người dùng
-    );
-  }
 
   // Convert to JSON
   Map<String, dynamic> toJson() {
-    return toMap();
+    return {
+      'userId': userId,
+      'email': email,
+      'phoneNumber': phoneNumber,
+      'accessToken': accessToken,
+      'refreshToken': refreshToken,
+      'tokenType': tokenType,
+      'expiresIn': expiresIn,
+      'roles': roles,
+      'userType': userType,
+    };
   }
 
   // Create from JSON
   factory UserModel.fromJson(Map<String, dynamic> json) {
-    return UserModel.fromMap(json);
+    return UserModel(
+      userId: json['userId'] ?? json['id'] ?? '',
+      email: json['email'] ?? '',
+      phoneNumber: json['phoneNumber'] ?? json['phone'] ?? '',
+      accessToken: json['accessToken'] ?? json['token'],
+      refreshToken: json['refreshToken'],
+      tokenType: json['tokenType'],
+      expiresIn: json['expiresIn'],
+      roles: json['roles'] != null ? List<String>.from(json['roles']) : null,
+      userType: json['userType'],
+    );
   }
 
   // Copy with method for updates
   UserModel copyWith({
-    String? uid,
+    String? userId,
     String? email,
-    String? firstName,
     String? phoneNumber,
-    DateTime? createdAt,
-    String? photoURL,
-    String? role,
+    String? accessToken,
+    String? refreshToken,
+    String? tokenType,
+    int? expiresIn,
+    List<String>? roles,
+    String? userType,
   }) {
     return UserModel(
-      uid: uid ?? this.uid,
+      userId: userId ?? this.userId,
       email: email ?? this.email,
-      firstName: firstName ?? this.firstName,
       phoneNumber: phoneNumber ?? this.phoneNumber,
-      createdAt: createdAt ?? this.createdAt,
-      photoURL: photoURL ?? this.photoURL,
-      role: role ?? this.role,
+      accessToken: accessToken ?? this.accessToken,
+      refreshToken: refreshToken ?? this.refreshToken,
+      tokenType: tokenType ?? this.tokenType,
+      expiresIn: expiresIn ?? this.expiresIn,
+      roles: roles ?? this.roles,
+      userType: userType ?? this.userType,
     );
   }
 
   @override
   String toString() {
-    return 'UserModel(uid: $uid, email: $email, firstName: $firstName, phoneNumber: $phoneNumber, role: $role)';
+    return 'UserModel(userId: $userId, email: $email, phoneNumber: $phoneNumber, userType: $userType)';
   }
 }

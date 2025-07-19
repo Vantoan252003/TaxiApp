@@ -56,26 +56,38 @@ class LoginRequest {
 }
 
 class AuthResponse {
-  final String? token;
-  final String? refreshToken;
-  final Map<String, dynamic>? user;
+  final bool success;
   final String? message;
+  final Map<String, dynamic>? data;
+  final String? timestamp;
 
   const AuthResponse({
-    this.token,
-    this.refreshToken,
-    this.user,
+    this.success = false,
     this.message,
+    this.data,
+    this.timestamp,
   });
 
   factory AuthResponse.fromJson(Map<String, dynamic> json) {
     return AuthResponse(
-      token: json['token'],
-      refreshToken: json['refreshToken'],
-      user: json['user'],
+      success: json['success'] ?? false,
       message: json['message'],
+      data: json['data'],
+      timestamp: json['timestamp'],
     );
   }
+
+  // Helper methods to extract user data from data object
+  String? get accessToken => data?['accessToken'];
+  String? get refreshToken => data?['refreshToken'];
+  String? get userId => data?['userId'];
+  String? get email => data?['email'];
+  String? get phoneNumber => data?['phoneNumber'];
+  String? get tokenType => data?['tokenType'];
+  int? get expiresIn => data?['expiresIn'];
+  List<String>? get roles =>
+      data?['roles'] != null ? List<String>.from(data!['roles']) : null;
+  String? get userType => data?['userType'];
 }
 
 class OtpResponse {

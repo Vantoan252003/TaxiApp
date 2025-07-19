@@ -9,7 +9,8 @@ import '../widgets/forms/custom_button.dart';
 import '../../user_lib/screens/home_screen.dart';
 
 class SignInScreen extends StatefulWidget {
-  const SignInScreen({super.key});
+  final String? prefillPhone;
+  const SignInScreen({super.key, this.prefillPhone});
 
   @override
   State<SignInScreen> createState() => _SignInScreenState();
@@ -24,6 +25,14 @@ class _SignInScreenState extends State<SignInScreen> {
   final _passwordValidator = PasswordValidator();
 
   bool _isObscurePassword = true;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.prefillPhone != null && widget.prefillPhone!.isNotEmpty) {
+      _emailOrPhoneController.text = widget.prefillPhone!;
+    }
+  }
 
   @override
   void dispose() {

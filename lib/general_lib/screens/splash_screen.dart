@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../services/first_launch_service.dart';
-import '../services/auth_service.dart';
+import '../core/providers/auth_provider.dart';
 import '../constants/app_theme.dart';
 import '../constants/app_constants.dart';
 import 'welcome_screen.dart';
@@ -29,36 +30,42 @@ class _SplashScreenState extends State<SplashScreen> {
     // Add a small delay for splash effect
     await Future.delayed(AppConstants.splashDuration);
 
-    // Check if user is already logged in
-    final authService = AuthService();
-    final currentUser = authService.currentUser;
-
     if (mounted) {
-      if (currentUser != null) {
-        // User is logged in, go directly to home screen
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => const HomeScreen(),
-          ),
-        );
-      } else {
-        // User is not logged in, check if it's first launch
-        final isFirstLaunch = await FirstLaunchService.isFirstLaunch();
+      // Get auth provider from context
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
-        if (mounted) {
-          if (isFirstLaunch) {
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(
-                builder: (context) =>
-                    WelcomeScreen(homeScreen: widget.homeScreen),
-              ),
-            );
-          } else {
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(
-                builder: (context) => widget.homeScreen,
-              ),
-            );
+      // Wait for auth provider to initialize
+      while (!authProvider.isInitialized) {
+        await Future.delayed(const Duration(milliseconds: 100));
+      }
+
+      if (mounted) {
+        if (authProvider.isAuthenticated) {
+          // User is logged in, go directly to home screen
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => const HomeScreen(),
+            ),
+          );
+        } else {
+          // User is not logged in, check if it's first launch
+          final isFirstLaunch = await FirstLaunchService.isFirstLaunch();
+
+          if (mounted) {
+            if (isFirstLaunch) {
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(
+                  builder: (context) =>
+                      WelcomeScreen(homeScreen: widget.homeScreen),
+                ),
+              );
+            } else {
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(
+                  builder: (context) => widget.homeScreen,
+                ),
+              );
+            }
           }
         }
       }

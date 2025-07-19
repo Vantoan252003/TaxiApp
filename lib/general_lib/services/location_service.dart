@@ -1,5 +1,5 @@
 import 'package:geolocator/geolocator.dart';
-import 'package:geocoding/geocoding.dart';
+import 'vietmap_service.dart';
 
 class LocationService {
   static Future<bool> _handleLocationPermission() async {
@@ -42,15 +42,15 @@ class LocationService {
 
   static Future<String> getAddressFromPosition(Position position) async {
     try {
-      List<Placemark> placemarks = await placemarkFromCoordinates(
+      final vietmapAddress = await VietMapService.getAddressFromCoordinates(
         position.latitude,
         position.longitude,
       );
 
-      if (placemarks.isNotEmpty) {
-        Placemark place = placemarks[0];
-        return '${place.street}, ${place.subAdministrativeArea}, ${place.administrativeArea}';
+      if (vietmapAddress != null && vietmapAddress.isNotEmpty) {
+        return vietmapAddress;
       }
+
       return 'Không thể xác định địa chỉ';
     } catch (e) {
       return 'Lỗi khi lấy địa chỉ';
@@ -58,10 +58,24 @@ class LocationService {
   }
 
   static Future<String?> getCurrentAddress() async {
-    final position = await getCurrentPosition();
-    if (position != null) {
-      return await getAddressFromPosition(position);
+    try {
+      print('Getting current address from VietMap...');
+      final vietmapAddress = await VietMapService.getCurrentAddress();
+      if (vietmapAddress != null && vietmapAddress.isNotEmpty) {
+        print('VietMap address received: $vietmapAddress');
+        return vietmapAddress;
+      }
+
+      print('VietMap failed, trying fallback method...');
+      // Fallback về phương thức cũ nếu VietMap không hoạt động
+      final position = await getCurrentPosition();
+      if (position != null) {
+        return await getAddressFromPosition(position);
+      }
+      return null;
+    } catch (e) {
+      print('Error in getCurrentAddress: $e');
+      return null;
     }
-    return null;
   }
 }

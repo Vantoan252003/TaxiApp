@@ -1,21 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import '../services/auth_service.dart';
+import 'package:provider/provider.dart';
+import '../core/providers/auth_provider.dart';
 import 'phone_input_screen.dart';
 import '../../user_lib/screens/home_screen.dart';
 
-class AuthWrapper extends StatelessWidget {
+class AuthWrapper extends StatefulWidget {
   const AuthWrapper({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final AuthService authService = AuthService();
+  State<AuthWrapper> createState() => _AuthWrapperState();
+}
 
-    return StreamBuilder<User?>(
-      stream: authService.authStateChanges,
-      builder: (context, snapshot) {
-        // Show loading spinner while checking auth state
-        if (snapshot.connectionState == ConnectionState.waiting) {
+class _AuthWrapperState extends State<AuthWrapper> {
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<AuthProvider>(
+      builder: (context, authProvider, child) {
+        // Show loading while initializing
+        if (!authProvider.isInitialized) {
           return const Scaffold(
             body: Center(
               child: CircularProgressIndicator(),
@@ -23,12 +25,12 @@ class AuthWrapper extends StatelessWidget {
           );
         }
 
-        // If user is logged in, show home screen
-        if (snapshot.hasData && snapshot.data != null) {
+        // Show home screen if authenticated
+        if (authProvider.isAuthenticated) {
           return const HomeScreen();
         }
 
-        // If user is not logged in, show phone input screen
+        // Show phone input screen if not authenticated
         return const PhoneInputScreen();
       },
     );

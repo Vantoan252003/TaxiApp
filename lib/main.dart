@@ -5,7 +5,7 @@ import 'general_lib/screens/splash_screen.dart';
 import 'general_lib/screens/auth_wrapper.dart';
 import 'general_lib/core/di/service_locator.dart';
 import 'general_lib/core/providers/auth_provider.dart';
-import 'user_lib/screens/home_screen.dart';
+import 'general_lib/services/vietmap_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,7 +24,10 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(
+          create: (_) => AuthProvider(),
+          lazy: false, // Initialize immediately
+        ),
       ],
       child: MaterialApp(
         title: 'Taxi App',
@@ -37,13 +40,9 @@ class MyApp extends StatelessWidget {
           useMaterial3: true,
           fontFamily: 'System',
         ),
-        initialRoute: '/',
-        routes: {
-          '/': (context) => const SplashScreen(
-                homeScreen: AuthWrapper(),
-              ),
-          '/home': (context) => const HomeScreen(),
-        },
+        home: const SplashScreen(
+          homeScreen: AuthWrapper(),
+        ),
       ),
     );
   }

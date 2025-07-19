@@ -165,29 +165,50 @@ class _PhoneInputScreenState extends State<PhoneInputScreen> {
         phoneNumber = phoneNumber.substring(1);
       }
 
-      await authProvider.sendOtp(
-        phoneNumber: phoneNumber,
-        purpose: 'REGISTRATION',
-      );
+      // Check if phone number exists
+      final exists = await authProvider.checkPhoneNumberExists(phoneNumber);
 
-      if (mounted && authProvider.state != AuthState.error) {
-        // Navigate to OTP verification screen
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => OtpVerificationScreen(
-              phoneNumber: phoneNumber,
+      if (mounted) {
+        if (exists) {
+          // Phone number exists, navigate to login with pre-filled phone
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Số điện thoại đã đăng ký, vui lòng đăng nhập.'),
+              backgroundColor: AppTheme.successGreen,
             ),
-          ),
-        );
-      } else if (mounted && authProvider.errorMessage != null) {
-        // Show error message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(authProvider.errorMessage!),
-            backgroundColor: AppTheme.warningRed,
-          ),
-        );
-        authProvider.clearError();
+          );
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => SignInScreen(prefillPhone: '0$phoneNumber'),
+            ),
+          );
+        } else {
+          // Phone number doesn't exist, send OTP for registration
+          await authProvider.sendOtp(
+            phoneNumber: phoneNumber,
+            purpose: 'REGISTRATION',
+          );
+
+          if (mounted && authProvider.state != AuthState.error) {
+            // Navigate to OTP verification screen
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => OtpVerificationScreen(
+                  phoneNumber: phoneNumber,
+                ),
+              ),
+            );
+          } else if (mounted && authProvider.errorMessage != null) {
+            // Show error message
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(authProvider.errorMessage!),
+                backgroundColor: AppTheme.warningRed,
+              ),
+            );
+            authProvider.clearError();
+          }
+        }
       }
     }
   }
