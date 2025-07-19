@@ -13,8 +13,9 @@ class VietMapService {
     double longitude,
   ) async {
     try {
+      // Thử với endpoint reverse để lấy thông tin chi tiết
       final url = Uri.parse(
-          '$_baseUrl/geocode/v1/reverse?lat=$latitude&lng=$longitude&key=$_apiKey');
+          'https://maps.vietmap.vn/api/reverse/v3?apikey=$_apiKey&lat=$latitude&lng=$longitude&detail=true');
 
       print('Calling VietMap API: $url');
       final response = await http.get(url);
@@ -24,32 +25,32 @@ class VietMapService {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
 
-        if (data['status'] == 'OK' && data['data'] != null) {
-          final result = data['data'];
+        // VietMap API trả về array, lấy phần tử đầu tiên
+        if (data is List && data.isNotEmpty) {
+          final result = data[0];
 
-          // VietMap API trả về địa chỉ trong trường 'display_name'
-          if (result['display_name'] != null) {
-            print('VietMap address: ${result['display_name']}');
-            return result['display_name'];
+          // Sử dụng display name vì nó đã bao gồm cả tên đường và địa chỉ
+          if (result['display'] != null) {
+            print('VietMap detailed address: ${result['display']}');
+            return result['display'];
           }
 
-          // Fallback: tạo địa chỉ từ các thành phần
-          final address = result['address'] ?? {};
-          final street = address['road'] ?? address['street'] ?? '';
-          final ward = address['suburb'] ?? address['ward'] ?? '';
-          final district =
-              address['city_district'] ?? address['district'] ?? '';
-          final city = address['city'] ?? address['state'] ?? '';
+          // Fallback: tạo địa chỉ từ name và address
+          String detailedAddress = '';
+          if (result['name'] != null && result['name'].toString().isNotEmpty) {
+            detailedAddress += result['name'];
+          }
+          if (result['address'] != null) {
+            if (detailedAddress.isNotEmpty) {
+              detailedAddress += ', ';
+            }
+            detailedAddress += result['address'];
+          }
 
-          List<String> addressParts = [];
-          if (street.isNotEmpty) addressParts.add(street);
-          if (ward.isNotEmpty) addressParts.add(ward);
-          if (district.isNotEmpty) addressParts.add(district);
-          if (city.isNotEmpty) addressParts.add(city);
-
-          final fallbackAddress = addressParts.join(', ');
-          print('VietMap fallback address: $fallbackAddress');
-          return fallbackAddress;
+          if (detailedAddress.isNotEmpty) {
+            print('VietMap fallback address: $detailedAddress');
+            return detailedAddress;
+          }
         }
       }
 
@@ -65,15 +66,15 @@ class VietMapService {
   static Future<List<Map<String, dynamic>>> searchPlaces(String query) async {
     try {
       final url = Uri.parse(
-          '$_baseUrl/geocode/v1/search?q=${Uri.encodeComponent(query)}&key=$_apiKey');
+          'https://maps.vietmap.vn/api/search/v3?apikey=$_apiKey&text=${Uri.encodeComponent(query)}');
 
       final response = await http.get(url);
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
 
-        if (data['status'] == 'OK' && data['data'] != null) {
-          return List<Map<String, dynamic>>.from(data['data']);
+        if (data is List) {
+          return List<Map<String, dynamic>>.from(data);
         }
       }
 
@@ -107,15 +108,15 @@ class VietMapService {
   static Future<Map<String, dynamic>?> getPlaceDetails(String placeId) async {
     try {
       final url = Uri.parse(
-          '$_baseUrl/geocode/v1/place?place_id=$placeId&key=$_apiKey');
+          'https://maps.vietmap.vn/api/place/v3?apikey=$_apiKey&ref_id=$placeId');
 
       final response = await http.get(url);
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
 
-        if (data['status'] == 'OK' && data['data'] != null) {
-          return data['data'];
+        if (data is Map) {
+          return Map<String, dynamic>.from(data);
         }
       }
 
