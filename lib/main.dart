@@ -5,7 +5,6 @@ import 'general_lib/screens/splash_screen.dart';
 import 'general_lib/screens/auth_wrapper.dart';
 import 'general_lib/core/di/service_locator.dart';
 import 'general_lib/core/providers/auth_provider.dart';
-import 'general_lib/services/vietmap_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

@@ -6,6 +6,7 @@ import '../../general_lib/screens/phone_input_screen.dart';
 import '../widgets/profile_header.dart';
 import '../widgets/profile_menu_section.dart';
 import '../widgets/logout_dialog.dart';
+import 'personal_info_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -25,7 +26,13 @@ class ProfileScreen extends StatelessWidget {
                 ProfileMenuItem(
                   icon: Icons.person_outline,
                   title: 'Thông tin cá nhân',
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const PersonalInfoScreen(),
+                      ),
+                    );
+                  },
                 ),
                 ProfileMenuItem(
                   icon: Icons.security_outlined,

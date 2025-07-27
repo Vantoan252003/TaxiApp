@@ -115,28 +115,7 @@ class _SplashScreenState extends State<SplashScreen> {
             ),
             const SizedBox(height: 32),
 
-            // App name with fade animation
-            TweenAnimationBuilder<double>(
-              duration: const Duration(milliseconds: 1000),
-              tween: Tween(begin: 0.0, end: 1.0),
-              builder: (context, value, child) {
-                return Opacity(
-                  opacity: value,
-                  child: Text(
-                    AppConstants.appName,
-                    style: AppTheme.heading1.copyWith(
-                      fontSize: 32,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -1.0,
-                    ),
-                  ),
-                );
-              },
-            ),
-
-            const SizedBox(height: 8),
-
-            // Tagline
+            // Tagline căn giữa
             TweenAnimationBuilder<double>(
               duration: const Duration(milliseconds: 1200),
               tween: Tween(begin: 0.0, end: 1.0),
@@ -144,7 +123,8 @@ class _SplashScreenState extends State<SplashScreen> {
                 return Opacity(
                   opacity: value,
                   child: Text(
-                    'Chào mừng bạn đến với Mozi - Ứng dụng đặt taxi thông minh',
+                    'Mozi - Ứng dụng đặt xe thông minh',
+                    textAlign: TextAlign.center,
                     style: AppTheme.body1.copyWith(
                       fontSize: 16,
                       color: AppTheme.mediumGray,

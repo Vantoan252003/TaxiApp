@@ -184,7 +184,21 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               ),
                             ),
                           ),
-                          // Phone Number
+                          // Phone Number (readonly if verified)
+                          Expanded(
+                            child: TextFormField(
+                              controller: _phoneController,
+                              enabled:
+                                  false, // always readonly if passed from OTP
+                              style: AppTheme.body1,
+                              decoration: const InputDecoration(
+                                border: InputBorder.none,
+                                contentPadding:
+                                    EdgeInsets.symmetric(horizontal: 12),
+                                hintText: '',
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -332,10 +346,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
       try {
         await RegistrationService.register(
           email: _emailController.text.trim(),
-          phone: _phoneController.text.trim(), 
+          phoneNumber: _phoneController.text
+              .trim(), // luôn lấy từ controller, đã readonly
           password: _passwordController.text.trim(),
           firstName: _firstNameController.text.trim(),
           lastName: _lastNameController.text.trim(),
+          userType: 'CUSTOMER',
         );
 
         if (mounted) {

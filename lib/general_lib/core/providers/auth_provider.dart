@@ -5,6 +5,7 @@ import '../models/auth_models.dart';
 import '../usecases/auth_usecases.dart';
 import '../di/service_locator.dart';
 import '../../services/check_phone_service.dart';
+import '../../services/get_userinfo_service.dart';
 import '../../models/user_model.dart';
 
 enum AuthState { initial, loading, authenticated, unauthenticated, error }
@@ -147,8 +148,18 @@ class AuthProvider extends ChangeNotifier {
       if (response.data != null) {
         final user = UserModel.fromJson(response.data!);
         await _saveUserToStorage(user);
+
+        // Lưu accessToken riêng để sử dụng cho API calls
+        if (user.accessToken != null) {
+          print('AuthProvider - Saving accessToken: ${user.accessToken}');
+          await _saveAccessToken(user.accessToken!);
+        } else {
+          print('AuthProvider - accessToken is null in user data');
+        }
+
         _currentUser = user;
         _setState(AuthState.authenticated);
+        print('AuthProvider - Login successful, user: $user');
       } else {
         _setError('Login failed: No user data received');
       }
@@ -157,9 +168,39 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  // Load user info from API
+  Future<void> loadUserInfo() async {
+    if (_currentUser == null) {
+      return;
+    }
+
+    // Kiểm tra accessToken trong SharedPreferences
+    final prefs = await SharedPreferences.getInstance();
+    final accessToken = prefs.getString(_accessTokenKey);
+
+    try {
+      final service = GetUserinfoService();
+      final userInfo = await service.fetchUserInfo();
+
+      if (userInfo != null) {
+        _currentUser = userInfo;
+        await _saveUserToStorage(userInfo);
+        notifyListeners();
+    
+      } else {
+        // Nếu không lấy được user info, có thể accessToken đã hết hạn
+
+        // Không logout ngay, chỉ log để debug
+      }
+    } catch (e) {
+
+    }
+  }
+
   // Logout
   Future<void> logout() async {
     await _clearUserFromStorage();
+    await _clearAccessToken();
     _authResponse = null;
     _currentUser = null;
     _setState(AuthState.unauthenticated);
@@ -175,10 +216,16 @@ class AuthProvider extends ChangeNotifier {
 
   // Private methods for SharedPreferences
   static const String _userKey = 'currentUser';
+  static const String _accessTokenKey = 'accessToken';
 
   Future<void> _saveUserToStorage(UserModel user) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_userKey, jsonEncode(user.toJson()));
+  }
+
+  Future<void> _saveAccessToken(String accessToken) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_accessTokenKey, accessToken);
   }
 
   Future<UserModel?> _getCurrentUserFromStorage() async {
@@ -198,6 +245,11 @@ class AuthProvider extends ChangeNotifier {
   Future<void> _clearUserFromStorage() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_userKey);
+  }
+
+  Future<void> _clearAccessToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_accessTokenKey);
   }
 
   // Private methods

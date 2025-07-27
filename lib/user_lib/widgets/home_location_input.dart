@@ -60,14 +60,17 @@ class HomeLocationInput extends StatelessWidget {
       );
     }
 
-    return Text(text, style: _getTextStyle());
+    return Text(text, style: _getTextStyle(), maxLines: 2, overflow: TextOverflow.ellipsis,);
   }
 
   TextStyle _getTextStyle() {
-    final isPlaceholder = text.contains('Nhập vào') || text.contains('Lỗi');
+    final isPlaceholder = text.contains('Nhập vào') ||
+        text.contains('Lỗi') ||
+        text.contains('Đang lấy');
     return isPlaceholder
         ? AppTheme.body2.copyWith(color: AppTheme.lightGray)
-        : AppTheme.body1.copyWith(color: AppTheme.darkGray);
+        : AppTheme.body1
+            .copyWith(color: AppTheme.darkGray, fontWeight: FontWeight.w500);
   }
 
   Widget _buildTrailingIcon() {

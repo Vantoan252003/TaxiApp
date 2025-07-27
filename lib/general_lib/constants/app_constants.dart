@@ -5,7 +5,7 @@ class AppConstants {
   static const String appVersion = '1.0.0';
 
   // API Configuration
-  static const String baseUrl = 'https://api.taxiapp.com';
+  static const String baseUrl = 'https://gateway.soramall.co';
   static const Duration apiTimeout = Duration(seconds: 30);
 
   // SharedPreferences Keys
@@ -21,16 +21,13 @@ class AppConstants {
   // Location Messages
   static const String loadingLocationText = 'Đang lấy vị trí...';
   static const String errorLocationText = 'Không thể lấy vị trí hiện tại';
-  static const String destinationPlaceholder =
-      'Nhập vào để đặt xe máy, xe hơi ...';
+  static const String destinationPlaceholder = 'Bạn muốn đi đâu ?';
 
   // Feature Messages
   static const String featureInDevelopment = 'đang phát triển';
   static const String destinationFeature = 'Chức năng chọn điểm đến';
 
-  // Default Values
   static const String defaultUserName = 'Người dùng';
-  static const String greetingMessage = 'Chúc bạn một ngày tốt lành!';
 
   // UI Constants
   static const double defaultPadding = 16.0;

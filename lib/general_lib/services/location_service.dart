@@ -59,14 +59,13 @@ class LocationService {
 
   static Future<String?> getCurrentAddress() async {
     try {
-      print('Getting current address from VietMap...');
       final vietmapAddress = await VietMapService.getCurrentAddress();
       if (vietmapAddress != null && vietmapAddress.isNotEmpty) {
-        print('VietMap address received: $vietmapAddress');
+
         return vietmapAddress;
       }
 
-      print('VietMap failed, trying fallback method...');
+
       // Fallback về phương thức cũ nếu VietMap không hoạt động
       final position = await getCurrentPosition();
       if (position != null) {
@@ -74,7 +73,6 @@ class LocationService {
       }
       return null;
     } catch (e) {
-      print('Error in getCurrentAddress: $e');
       return null;
     }
   }
