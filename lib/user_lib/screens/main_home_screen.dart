@@ -10,6 +10,11 @@ import '../widgets/home_banner_section.dart';
 import '../widgets/home_location_section.dart';
 import '../widgets/home_services_grid.dart';
 import '../widgets/home_suggestion_section.dart';
+import '../widgets/home_promotion_carousel.dart';
+import '../widgets/home_stats_section.dart';
+import '../widgets/home_popular_places.dart';
+import '../widgets/home_news_section.dart';
+import '../widgets/home_greeting_section.dart';
 import 'destination_search_screen.dart';
 
 class MainHomeScreen extends StatefulWidget {
@@ -84,6 +89,7 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
                   // Banner Section with banner.png
                   const HomeBannerSection(),
 
+
                   // Location Input Section
                   HomeLocationSection(
                     currentLocation: placeProvider.isLoadingLocation
@@ -95,7 +101,7 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
                     onDestinationTap: _openDestinationSearch,
                   ),
 
-                  // Services Grid
+                  // Main Content
                   Expanded(
                     child: Container(
                       decoration: const BoxDecoration(
@@ -105,20 +111,39 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
                           topRight: Radius.circular(0),
                         ),
                       ),
-                      child: Padding(
+                      child: SingleChildScrollView(
                         padding: const EdgeInsets.all(16),
                         child: Column(
                           children: [
-                            // Services Grid
-                            Expanded(
-                              child: HomeServicesGrid(
-                                onServiceTap: (serviceType) =>
-                                    _showFeatureInDevelopment(
-                                        'Dịch vụ $serviceType'),
-                              ),
+                            // Services Grid - Đặt lên đầu để dễ đặt xe
+                            HomeServicesGrid(
+                              onServiceTap: (serviceType) =>
+                                  _showFeatureInDevelopment(
+                                      'Dịch vụ $serviceType'),
                             ),
+                            const SizedBox(height: 20),
+
+                            // Promotion Carousel
+                            const HomePromotionCarousel(),
+                            const SizedBox(height: 20),
+
+                            // Stats Section - Thông tin chuyến xe, tích điểm, tiết kiệm
+                            const HomeStatsSection(),
+                            const SizedBox(height: 10),
+
+                            // Popular Places
+                            const HomePopularPlaces(),
+                            const SizedBox(height: 20),
+
+                            // News Section
+                            const HomeNewsSection(),
+                            const SizedBox(height: 20),
+
                             // Suggestion Section
                             const HomeSuggestionSection(),
+                            const SizedBox(
+                                height:
+                                    20), // Thêm padding cuối để tránh overflow
                           ],
                         ),
                       ),

@@ -41,7 +41,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
       if (mounted) {
         if (authProvider.isAuthenticated) {
-          // User is logged in, go directly to home screen
+          // User is already authenticated, go to home screen
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
               builder: (context) => const HomeScreen(),

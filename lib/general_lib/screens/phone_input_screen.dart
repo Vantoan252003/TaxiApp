@@ -10,7 +10,9 @@ import 'otp_verification_screen.dart';
 import 'sign_in_screen.dart';
 
 class PhoneInputScreen extends StatefulWidget {
-  const PhoneInputScreen({super.key});
+  final String? prefillPhone;
+
+  const PhoneInputScreen({super.key, this.prefillPhone});
 
   @override
   State<PhoneInputScreen> createState() => _PhoneInputScreenState();
@@ -20,6 +22,15 @@ class _PhoneInputScreenState extends State<PhoneInputScreen> {
   final _formKey = GlobalKey<FormState>();
   final _phoneController = TextEditingController();
   final _phoneValidator = PhoneNumberValidator();
+
+  @override
+  void initState() {
+    super.initState();
+    // Prefill phone number if provided
+    if (widget.prefillPhone != null && widget.prefillPhone!.isNotEmpty) {
+      _phoneController.text = widget.prefillPhone!;
+    }
+  }
 
   @override
   void dispose() {

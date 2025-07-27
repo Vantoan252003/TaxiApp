@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../general_lib/constants/app_theme.dart';
 import '../../general_lib/core/providers/auth_provider.dart';
-import '../../general_lib/screens/phone_input_screen.dart';
+import '../../general_lib/screens/sign_in_screen.dart';
 import '../widgets/profile_header.dart';
 import '../widgets/profile_menu_section.dart';
 import '../widgets/logout_dialog.dart';
 import 'personal_info_screen.dart';
+import 'security_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -37,7 +38,13 @@ class ProfileScreen extends StatelessWidget {
                 ProfileMenuItem(
                   icon: Icons.security_outlined,
                   title: 'Bảo mật',
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const SecurityScreen(),
+                      ),
+                    );
+                  },
                 ),
                 ProfileMenuItem(
                   icon: Icons.notifications_outlined,
@@ -111,12 +118,40 @@ class ProfileScreen extends StatelessWidget {
 
       // Use AuthProvider instead of AuthService
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      await authProvider.logout();
+
+      // Lấy số điện thoại của người dùng hiện tại trước khi logout
+      String? userPhone;
+      if (authProvider.currentUser != null) {
+        userPhone = authProvider.currentUser!.phoneNumber;
+        // Nếu số điện thoại có định dạng +84, chuyển về 0
+        if (userPhone != null && userPhone.startsWith('+84')) {
+          userPhone = '0${userPhone.substring(3)}';
+        }
+        // Nếu số điện thoại không có 0 ở đầu, thêm vào
+        if (userPhone != null && !userPhone.startsWith('0')) {
+          userPhone = '0$userPhone';
+        }
+      }
+
+      // Kiểm tra xem sinh trắc học có được bật không
+      final isBiometricEnabled = await authProvider.isBiometricEnabled();
+
+      if (isBiometricEnabled) {
+        // Nếu sinh trắc học được bật, chỉ logout tạm thời (giữ dữ liệu)
+        await authProvider.logout(clearBiometric: false);
+      } else {
+        // Nếu không có sinh trắc học, logout hoàn toàn
+        await authProvider.logout(clearBiometric: true);
+      }
 
       if (context.mounted) {
         Navigator.of(context).pop(); // Close loading dialog
+
+        // Điều hướng đến trang đăng nhập với số điện thoại được điền sẵn
         Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => const PhoneInputScreen()),
+          MaterialPageRoute(
+            builder: (context) => SignInScreen(prefillPhone: userPhone),
+          ),
           (route) => false,
         );
       }

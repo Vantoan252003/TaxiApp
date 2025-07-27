@@ -6,6 +6,7 @@ import '../core/providers/auth_provider.dart';
 import '../core/validators/form_validators.dart';
 import '../widgets/forms/custom_text_field.dart';
 import '../widgets/forms/custom_button.dart';
+import '../widgets/biometric_login_button.dart';
 import '../../user_lib/screens/home_screen.dart';
 
 class SignInScreen extends StatefulWidget {
@@ -149,7 +150,27 @@ class _SignInScreenState extends State<SignInScreen> {
                       onPressed: () => _handleSignIn(authProvider),
                     ),
 
-                    const SizedBox(height: 40),
+                    const SizedBox(height: 20),
+
+                    // Biometric Login Button
+                    BiometricLoginButton(
+                      onSuccess: () {
+                        Navigator.of(context).pushAndRemoveUntil(
+                          MaterialPageRoute(builder: (context) => const HomeScreen()),
+                          (route) => false,
+                        );
+                      },
+                      onError: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Đăng nhập sinh trắc học thất bại'),
+                            backgroundColor: AppTheme.warningRed,
+                          ),
+                        );
+                      },
+                    ),
+
+                    const SizedBox(height: 20),
 
                     // Don't have account
                     Center(

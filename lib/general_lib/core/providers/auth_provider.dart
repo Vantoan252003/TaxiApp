@@ -6,6 +6,7 @@ import '../usecases/auth_usecases.dart';
 import '../di/service_locator.dart';
 import '../../services/check_phone_service.dart';
 import '../../services/get_userinfo_service.dart';
+import '../../services/biometric_service.dart';
 import '../../models/user_model.dart';
 
 enum AuthState { initial, loading, authenticated, unauthenticated, error }
@@ -36,6 +37,12 @@ class AuthProvider extends ChangeNotifier {
   bool get isLoading => _state == AuthState.loading;
   bool get isAuthenticated => _state == AuthState.authenticated;
   bool get isInitialized => _state != AuthState.initial;
+
+  // Kiểm tra xem có session người dùng được lưu không
+  Future<bool> hasStoredSession() async {
+    final user = await _getCurrentUserFromStorage();
+    return user != null;
+  }
 
   // Initialize authentication state from SharedPreferences
   Future<void> _initializeAuth() async {
@@ -153,13 +160,10 @@ class AuthProvider extends ChangeNotifier {
         if (user.accessToken != null) {
           print('AuthProvider - Saving accessToken: ${user.accessToken}');
           await _saveAccessToken(user.accessToken!);
-        } else {
-          print('AuthProvider - accessToken is null in user data');
-        }
+        } else {}
 
         _currentUser = user;
         _setState(AuthState.authenticated);
-        print('AuthProvider - Login successful, user: $user');
       } else {
         _setError('Login failed: No user data received');
       }
@@ -178,32 +182,32 @@ class AuthProvider extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     final accessToken = prefs.getString(_accessTokenKey);
 
-    try {
-      final service = GetUserinfoService();
-      final userInfo = await service.fetchUserInfo();
+    final service = GetUserinfoService();
+    final userInfo = await service.fetchUserInfo();
 
-      if (userInfo != null) {
-        _currentUser = userInfo;
-        await _saveUserToStorage(userInfo);
-        notifyListeners();
-    
-      } else {
-        // Nếu không lấy được user info, có thể accessToken đã hết hạn
-
-        // Không logout ngay, chỉ log để debug
-      }
-    } catch (e) {
-
+    if (userInfo != null) {
+      _currentUser = userInfo;
+      await _saveUserToStorage(userInfo);
+      notifyListeners();
     }
   }
 
   // Logout
-  Future<void> logout() async {
-    await _clearUserFromStorage();
-    await _clearAccessToken();
-    _authResponse = null;
-    _currentUser = null;
-    _setState(AuthState.unauthenticated);
+  Future<void> logout({bool clearBiometric = false}) async {
+    if (clearBiometric) {
+      // Nếu logout hoàn toàn (không dùng sinh trắc học), xóa tất cả dữ liệu
+      await _clearUserFromStorage();
+      await _clearAccessToken();
+      await disableBiometric();
+      _authResponse = null;
+      _currentUser = null;
+      _setState(AuthState.unauthenticated);
+      print('AuthProvider - Complete logout (cleared all data)');
+    } else {
+      // Nếu chỉ logout tạm thời (giữ dữ liệu cho sinh trắc học), chỉ thay đổi trạng thái
+      _setState(AuthState.unauthenticated);
+      print('AuthProvider - Temporary logout (kept data for biometric)');
+    }
   }
 
   // Clear error
@@ -217,6 +221,7 @@ class AuthProvider extends ChangeNotifier {
   // Private methods for SharedPreferences
   static const String _userKey = 'currentUser';
   static const String _accessTokenKey = 'accessToken';
+  static const String _biometricEnabledKey = 'biometricEnabled';
 
   Future<void> _saveUserToStorage(UserModel user) async {
     final prefs = await SharedPreferences.getInstance();
@@ -250,6 +255,106 @@ class AuthProvider extends ChangeNotifier {
   Future<void> _clearAccessToken() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_accessTokenKey);
+  }
+
+  // Biometric authentication methods
+  Future<bool> isBiometricEnabled() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_biometricEnabledKey) ?? false;
+  }
+
+  Future<bool> enableBiometric() async {
+    try {
+      // Kiểm tra xem thiết bị có hỗ trợ sinh trắc học không
+      final canUse = await BiometricService.canUseBiometric();
+      if (!canUse) {
+        throw Exception(
+            'Thiết bị không hỗ trợ sinh trắc học hoặc chưa được thiết lập');
+      }
+
+      // Kiểm tra các loại sinh trắc học có sẵn
+      final availableBiometrics =
+          await BiometricService.getAvailableBiometrics();
+      print('AuthProvider - Available biometrics: $availableBiometrics');
+
+      // Xác thực bằng sinh trắc học để bật tính năng
+      final authenticated = await BiometricService.authenticate(
+        reason: 'Xác thực để bật đăng nhập sinh trắc học',
+      );
+
+      if (authenticated) {
+        // Lưu trạng thái bật sinh trắc học
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool(_biometricEnabledKey, true);
+        print('AuthProvider - Biometric enabled successfully');
+        return true;
+      } else {
+        throw Exception('Xác thực sinh trắc học thất bại - Vui lòng thử lại');
+      }
+    } catch (e) {
+      print('AuthProvider - Error enabling biometric: $e');
+      return false;
+    }
+  }
+
+  Future<void> disableBiometric() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_biometricEnabledKey, false);
+  }
+
+  Future<bool> authenticateWithBiometric() async {
+    try {
+      // Kiểm tra xem sinh trắc học có được bật không
+      final isEnabled = await isBiometricEnabled();
+      if (!isEnabled) {
+        print('AuthProvider - Biometric is not enabled');
+        return false;
+      }
+
+      // Xác thực bằng sinh trắc học
+      final authenticated = await BiometricService.authenticate(
+        reason: 'Đăng nhập bằng sinh trắc học',
+      );
+
+      if (authenticated) {
+        // Nếu xác thực thành công, khôi phục session người dùng
+        print(
+            'AuthProvider - Biometric authentication successful, restoring user session');
+
+        // Lấy thông tin người dùng từ SharedPreferences
+        final user = await _getCurrentUserFromStorage();
+        if (user != null) {
+          // Khôi phục thông tin người dùng và access token
+          _currentUser = user;
+
+          // Kiểm tra và khôi phục access token
+          final prefs = await SharedPreferences.getInstance();
+          final accessToken = prefs.getString(_accessTokenKey);
+          if (accessToken != null) {
+            print(
+                'AuthProvider - Restored access token: ${accessToken.substring(0, 20)}...');
+          }
+
+          // Cập nhật trạng thái thành authenticated
+          _setState(AuthState.authenticated);
+
+          // Tải lại thông tin người dùng từ API nếu cần
+          await loadUserInfo();
+
+          print('AuthProvider - User session restored successfully');
+          return true;
+        } else {
+          print('AuthProvider - No saved user data found');
+          return false;
+        }
+      }
+
+      print('AuthProvider - Biometric authentication failed');
+      return false;
+    } catch (e) {
+      print('AuthProvider - Error authenticating with biometric: $e');
+      return false;
+    }
   }
 
   // Private methods

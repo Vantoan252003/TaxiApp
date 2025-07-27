@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../general_lib/services/service_config.dart';
-import 'home_service_item.dart';
+import '../../general_lib/constants/app_theme.dart';
 
 class HomeServicesGrid extends StatelessWidget {
   final Function(String) onServiceTap;
@@ -14,21 +14,60 @@ class HomeServicesGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     final services = ServiceFactory.getServices();
 
-    return GridView.builder(
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 4,
-        crossAxisSpacing: 10,
-        mainAxisSpacing: 16,
-      ),
-      itemCount: services.length,
-      itemBuilder: (context, index) {
-        final service = services[index];
-        return HomeServiceItem(
-          icon: service.icon,
-          title: service.title,
-          onTap: () => onServiceTap(service.type),
-        );
-      },
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Text(
+            'Dịch vụ của chúng tôi',
+            style: AppTheme.heading3,
+          ),
+        ),
+        SizedBox(
+          height: 80,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            itemCount: services.length,
+            itemBuilder: (context, index) {
+              final service = services[index];
+              return GestureDetector(
+                onTap: () => onServiceTap(service.type),
+                child: Container(
+                  width: 100,
+                  margin: const EdgeInsets.only(right: 12),
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 50,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryBlack.withOpacity(0.05),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          service.icon,
+                          color: AppTheme.primaryBlack,
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        service.title,
+                        style: AppTheme.caption,
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }
