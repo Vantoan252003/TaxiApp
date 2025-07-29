@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../constants/app_theme.dart';
 import '../constants/app_constants.dart';
 import '../core/validators/form_validators.dart';
+import '../core/providers/auth_provider.dart';
 import '../services/registration_service.dart';
 import '../widgets/forms/custom_text_field.dart';
 import '../widgets/forms/custom_button.dart';
 import 'sign_in_screen.dart';
+import '../../user_lib/screens/home_screen.dart';
 
 class SignUpScreen extends StatefulWidget {
   final String? phoneNumber;
@@ -25,14 +28,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _formKey = GlobalKey<FormState>();
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
-  final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
   // Validators
   final _nameValidator = NameValidator();
-  final _emailValidator = EmailValidator();
   final _passwordValidator = PasswordValidator();
 
   bool _isLoading = false;
@@ -50,13 +51,20 @@ class _SignUpScreenState extends State<SignUpScreen> {
       }
       _phoneController.text = phoneForApi;
     }
+
+    // Reset loading state when entering this screen
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      setState(() {
+        _isLoading = false;
+      });
+    });
   }
 
   @override
   void dispose() {
+    // Clear any temporary registration data when leaving the screen
     _firstNameController.dispose();
     _lastNameController.dispose();
-    _emailController.dispose();
     _phoneController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
@@ -101,42 +109,33 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   ),
                 ),
 
-                const SizedBox(height: 40),
+                const SizedBox(height: 30),
 
-                // First Name Field
-                CustomTextField(
-                  controller: _firstNameController,
-                  label: 'Tên',
-                  hintText: 'Nhập tên của bạn',
-                  validator: (value) =>
-                      _nameValidator.validate(value ?? '').errorMessage,
+                // Họ và Tên trên cùng một dòng
+                Row(
+                  children: [
+                    Expanded(
+                      child: CustomTextField(
+                        controller: _lastNameController,
+                        label: 'Họ',
+                        hintText: 'Nhập họ',
+                        validator: (value) =>
+                            _nameValidator.validate(value ?? '').errorMessage,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: CustomTextField(
+                        controller: _firstNameController,
+                        label: 'Tên',
+                        hintText: 'Nhập tên',
+                        validator: (value) =>
+                            _nameValidator.validate(value ?? '').errorMessage,
+                      ),
+                    ),
+                  ],
                 ),
-
                 const SizedBox(height: 16),
-
-                // Last Name Field
-                CustomTextField(
-                  controller: _lastNameController,
-                  label: 'Họ',
-                  hintText: 'Nhập họ của bạn',
-                  validator: (value) =>
-                      _nameValidator.validate(value ?? '').errorMessage,
-                ),
-
-                const SizedBox(height: 16),
-
-                // Email Field
-                CustomTextField(
-                  controller: _emailController,
-                  label: 'Email',
-                  hintText: 'Nhập email của bạn',
-                  keyboardType: TextInputType.emailAddress,
-                  validator: (value) =>
-                      _emailValidator.validate(value ?? '').errorMessage,
-                ),
-
-                const SizedBox(height: 16),
-
                 // Phone Field
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -264,7 +263,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   },
                 ),
 
-                const SizedBox(height: 40),
+                const SizedBox(height: 20),
 
                 // Sign Up Button
                 CustomButton(
@@ -344,8 +343,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       });
 
       try {
-        await RegistrationService.register(
-          email: _emailController.text.trim(),
+        final response = await RegistrationService.register(
           phoneNumber: _phoneController.text
               .trim(), // luôn lấy từ controller, đã readonly
           password: _passwordController.text.trim(),
@@ -355,6 +353,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
         );
 
         if (mounted) {
+          // Save user data to AuthProvider after successful registration
+          final authProvider =
+              Provider.of<AuthProvider>(context, listen: false);
+     
+            await authProvider.saveUserAfterRegistration(response);
+          
+
           // Show success message
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -363,11 +368,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
             ),
           );
 
-          // Navigate to sign in screen
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => const SignInScreen(),
-            ),
+          // Navigate to home screen directly
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => const HomeScreen()),
+            (route) => false,
           );
         }
       } catch (e) {

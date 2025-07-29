@@ -8,6 +8,7 @@ import '../core/validators/form_validators.dart';
 import '../widgets/forms/otp_input_field.dart';
 import '../widgets/forms/custom_button.dart';
 import 'sign_up_screen.dart';
+import '../../user_lib/screens/home_screen.dart';
 
 class OtpVerificationScreen extends StatefulWidget {
   final String phoneNumber;
@@ -37,6 +38,11 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
   void initState() {
     super.initState();
     _startCountDown();
+    // Reset auth provider state when entering this screen
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      authProvider.clearError();
+    });
   }
 
   @override
@@ -211,8 +217,10 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
     if (mounted) {
       if (authProvider.state == AuthState.authenticated) {
         // Navigate to home screen for login
-        Navigator.of(context)
-            .pushNamedAndRemoveUntil('/home', (route) => false);
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const HomeScreen()),
+          (route) => false,
+        );
       } else if (authProvider.state != AuthState.error) {
         // Navigate to sign up screen for registration
         Navigator.of(context).pushReplacement(

@@ -15,7 +15,7 @@ class GetUserinfoService {
     }
 
     try {
-      final url = '${AppConstants.baseUrl}/api/v1/rider/me';
+      const String url = '${AppConstants.baseUrl}/api/v1/auth/rider/me';
 
       final response = await http.get(
         Uri.parse(url),
@@ -24,7 +24,6 @@ class GetUserinfoService {
           'Content-Type': 'application/json',
         },
       );
-
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -44,7 +43,6 @@ class GetUserinfoService {
 
         return UserModel.fromJson(userData);
       } else {
-       
         return null;
       }
     } catch (e) {

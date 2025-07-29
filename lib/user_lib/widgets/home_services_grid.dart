@@ -17,13 +17,6 @@ class HomeServicesGrid extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Text(
-            'Dịch vụ của chúng tôi',
-            style: AppTheme.heading3,
-          ),
-        ),
         SizedBox(
           height: 80,
           child: ListView.builder(

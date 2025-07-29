@@ -1,5 +1,4 @@
 import 'package:local_auth/local_auth.dart';
-import 'package:flutter/services.dart';
 
 class BiometricService {
   static final LocalAuthentication _localAuth = LocalAuthentication();
@@ -10,8 +9,7 @@ class BiometricService {
       final isAvailable = await _localAuth.canCheckBiometrics;
       final isDeviceSupported = await _localAuth.isDeviceSupported();
       return isAvailable && isDeviceSupported;
-    } on PlatformException catch (e) {
-      print('BiometricService - Error checking biometric availability: $e');
+    }  catch (e) {
       return false;
     }
   }
@@ -21,8 +19,7 @@ class BiometricService {
     try {
       final availableBiometrics = await _localAuth.getAvailableBiometrics();
       return availableBiometrics;
-    } on PlatformException catch (e) {
-      print('BiometricService - Error getting available biometrics: $e');
+    } catch (e) {
       return [];
     }
   }
@@ -32,14 +29,10 @@ class BiometricService {
     String reason = 'Vui lòng xác thực để tiếp tục',
     String cancelButton = 'Hủy',
   }) async {
-    try {
       final isAvailable = await isBiometricAvailable();
       if (!isAvailable) {
-        print('BiometricService - Biometric authentication not available');
         return false;
       }
-
-      print('BiometricService - Starting authentication with reason: $reason');
 
       final result = await _localAuth.authenticate(
         localizedReason: reason,
@@ -49,38 +42,7 @@ class BiometricService {
         ),
       );
 
-      print('BiometricService - Authentication result: $result');
       return result;
-    } on PlatformException catch (e) {
-      print(
-          'BiometricService - Authentication error: ${e.code} - ${e.message}');
-
-      // Xử lý các lỗi cụ thể
-      switch (e.code) {
-        case 'NotAvailable':
-          print('BiometricService - Biometric not available on this device');
-          break;
-        case 'NotEnrolled':
-          print('BiometricService - No biometric enrolled on this device');
-          break;
-        case 'PasscodeNotSet':
-          print('BiometricService - Passcode not set on this device');
-          break;
-        case 'LockedOut':
-          print('BiometricService - Biometric is locked out');
-          break;
-        case 'UserCancel':
-          print('BiometricService - User cancelled authentication');
-          break;
-        default:
-          print('BiometricService - Unknown error: ${e.code}');
-      }
-
-      return false;
-    } catch (e) {
-      print('BiometricService - General error: $e');
-      return false;
-    }
   }
 
   // Lấy tên loại sinh trắc học để hiển thị

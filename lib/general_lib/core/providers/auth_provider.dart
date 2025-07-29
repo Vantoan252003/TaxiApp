@@ -46,17 +46,53 @@ class AuthProvider extends ChangeNotifier {
 
   // Initialize authentication state from SharedPreferences
   Future<void> _initializeAuth() async {
+    print('Initializing auth...');
     try {
       final user = await _getCurrentUserFromStorage();
       if (user != null) {
-        _currentUser = user;
-        _setState(AuthState.authenticated);
+        print('Found user: ${user.userId}, email: ${user.email}');
+        print('User has accessToken: ${user.accessToken != null}');
+
+        // Check if user has completed registration (has firstName, lastName, etc.)
+        final isRegistrationComplete = _isRegistrationComplete(user);
+        print('Is registration complete: $isRegistrationComplete');
+
+        if (isRegistrationComplete) {
+          _currentUser = user;
+          _setState(AuthState.authenticated);
+          print('User authenticated successfully');
+        } else {
+          // User exists but registration is incomplete, clear storage and show as unauthenticated
+          print('User registration incomplete, clearing storage');
+          await _clearUserFromStorage();
+          await _clearAccessToken();
+          _setState(AuthState.unauthenticated);
+        }
       } else {
+        print('No stored user found');
         _setState(AuthState.unauthenticated);
       }
     } catch (e) {
+      print('Error initializing auth: $e');
       _setState(AuthState.unauthenticated);
     }
+  }
+
+  // Check if user registration is complete
+  bool _isRegistrationComplete(UserModel user) {
+    // For auto-login, we only need basic user info (userId, email, phoneNumber)
+    // firstName and lastName are optional and can be filled later
+    // isVerified can be null (assume verified if not specified)
+    // If user has accessToken, they are considered authenticated
+    final hasBasicInfo = user.userId.isNotEmpty &&
+        (user.email.isNotEmpty || user.phoneNumber.isNotEmpty);
+
+    final isVerified = user.isVerified == null || user.isVerified == true;
+    final hasAccessToken =
+        user.accessToken != null && user.accessToken!.isNotEmpty;
+
+    // User is complete if they have basic info AND (are verified OR have access token)
+    return hasBasicInfo && (isVerified || hasAccessToken);
   }
 
   // Check if phone number exists
@@ -120,16 +156,18 @@ class AuthProvider extends ChangeNotifier {
       _authResponse = response;
 
       if (purpose == 'REGISTRATION') {
-        // For registration, save user data and mark as authenticated
-        if (response.data != null) {
-          final user = UserModel.fromJson(response.data!);
+        // For registration, don't save user data yet - wait for complete registration
+        // Just mark as initial state to proceed to sign up screen
+        _setState(AuthState.initial);
+      } else {
+        // For login, save user data and mark as authenticated
+        if (response.hasUserData) {
+          final user =
+              UserModel.fromJson(response.data as Map<String, dynamic>);
           await _saveUserToStorage(user);
           _currentUser = user;
           _setState(AuthState.authenticated);
         }
-      } else {
-        // For login, mark as authenticated
-        _setState(AuthState.authenticated);
       }
     } catch (e) {
       _setError(e.toString());
@@ -152,19 +190,28 @@ class AuthProvider extends ChangeNotifier {
       _authResponse = response;
 
       // Save user data to SharedPreferences
-      if (response.data != null) {
-        final user = UserModel.fromJson(response.data!);
+      print('Login response data: ${response.data}');
+      print('Response hasUserData: ${response.hasUserData}');
+      print('Response data type: ${response.data.runtimeType}');
+
+      if (response.hasUserData) {
+        final user = UserModel.fromJson(response.data as Map<String, dynamic>);
+        print('Created user: ${user.userId}, email: ${user.email}');
         await _saveUserToStorage(user);
 
         // Lưu accessToken riêng để sử dụng cho API calls
         if (user.accessToken != null) {
-          print('AuthProvider - Saving accessToken: ${user.accessToken}');
           await _saveAccessToken(user.accessToken!);
-        } else {}
+          print('Saved access token');
+        } else {
+          print('No access token to save');
+        }
 
         _currentUser = user;
         _setState(AuthState.authenticated);
+        print('Login successful, user authenticated');
       } else {
+        print('Login failed: No user data received');
         _setError('Login failed: No user data received');
       }
     } catch (e) {
@@ -202,11 +249,9 @@ class AuthProvider extends ChangeNotifier {
       _authResponse = null;
       _currentUser = null;
       _setState(AuthState.unauthenticated);
-      print('AuthProvider - Complete logout (cleared all data)');
     } else {
       // Nếu chỉ logout tạm thời (giữ dữ liệu cho sinh trắc học), chỉ thay đổi trạng thái
       _setState(AuthState.unauthenticated);
-      print('AuthProvider - Temporary logout (kept data for biometric)');
     }
   }
 
@@ -218,6 +263,18 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  // Save user data after successful registration
+  Future<void> saveUserAfterRegistration(Map<String, dynamic> userData) async {
+    try {
+      final user = UserModel.fromJson(userData);
+      await _saveUserToStorage(user);
+      _currentUser = user;
+      _setState(AuthState.authenticated);
+    } catch (e) {
+      _setError('Failed to save user data: $e');
+    }
+  }
+
   // Private methods for SharedPreferences
   static const String _userKey = 'currentUser';
   static const String _accessTokenKey = 'accessToken';
@@ -225,7 +282,11 @@ class AuthProvider extends ChangeNotifier {
 
   Future<void> _saveUserToStorage(UserModel user) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_userKey, jsonEncode(user.toJson()));
+    final userJson = user.toJson();
+    final userString = jsonEncode(userJson);
+    print('Saving user to storage: $userString');
+    await prefs.setString(_userKey, userString);
+    print('User saved successfully');
   }
 
   Future<void> _saveAccessToken(String accessToken) async {
@@ -236,13 +297,35 @@ class AuthProvider extends ChangeNotifier {
   Future<UserModel?> _getCurrentUserFromStorage() async {
     final prefs = await SharedPreferences.getInstance();
     final userString = prefs.getString(_userKey);
+    print('Loading user from storage: $userString');
+
     if (userString != null) {
       try {
-        final user = UserModel.fromJson(jsonDecode(userString));
+        final userJson = jsonDecode(userString);
+        print('Parsed user JSON: $userJson');
+        final user = UserModel.fromJson(userJson);
+        print(
+            'Created user from storage: ${user.userId}, email: ${user.email}');
+
+        // Load accessToken from separate storage and assign to user
+        final accessToken = prefs.getString(_accessTokenKey);
+        print(
+            'Access token from storage: ${accessToken != null ? "exists" : "null"}');
+
+        if (accessToken != null && accessToken.isNotEmpty) {
+          // Create a new user with accessToken
+          final userWithToken = user.copyWith(accessToken: accessToken);
+          print('User with access token: ${userWithToken.userId}');
+          return userWithToken;
+        }
+
         return user;
       } catch (e) {
+        print('Error parsing user from storage: $e');
         return null;
       }
+    } else {
+      print('No user string found in storage');
     }
     return null;
   }
@@ -272,11 +355,6 @@ class AuthProvider extends ChangeNotifier {
             'Thiết bị không hỗ trợ sinh trắc học hoặc chưa được thiết lập');
       }
 
-      // Kiểm tra các loại sinh trắc học có sẵn
-      final availableBiometrics =
-          await BiometricService.getAvailableBiometrics();
-      print('AuthProvider - Available biometrics: $availableBiometrics');
-
       // Xác thực bằng sinh trắc học để bật tính năng
       final authenticated = await BiometricService.authenticate(
         reason: 'Xác thực để bật đăng nhập sinh trắc học',
@@ -286,13 +364,11 @@ class AuthProvider extends ChangeNotifier {
         // Lưu trạng thái bật sinh trắc học
         final prefs = await SharedPreferences.getInstance();
         await prefs.setBool(_biometricEnabledKey, true);
-        print('AuthProvider - Biometric enabled successfully');
         return true;
       } else {
         throw Exception('Xác thực sinh trắc học thất bại - Vui lòng thử lại');
       }
     } catch (e) {
-      print('AuthProvider - Error enabling biometric: $e');
       return false;
     }
   }
@@ -307,7 +383,6 @@ class AuthProvider extends ChangeNotifier {
       // Kiểm tra xem sinh trắc học có được bật không
       final isEnabled = await isBiometricEnabled();
       if (!isEnabled) {
-        print('AuthProvider - Biometric is not enabled');
         return false;
       }
 
@@ -318,8 +393,6 @@ class AuthProvider extends ChangeNotifier {
 
       if (authenticated) {
         // Nếu xác thực thành công, khôi phục session người dùng
-        print(
-            'AuthProvider - Biometric authentication successful, restoring user session');
 
         // Lấy thông tin người dùng từ SharedPreferences
         final user = await _getCurrentUserFromStorage();
@@ -330,10 +403,7 @@ class AuthProvider extends ChangeNotifier {
           // Kiểm tra và khôi phục access token
           final prefs = await SharedPreferences.getInstance();
           final accessToken = prefs.getString(_accessTokenKey);
-          if (accessToken != null) {
-            print(
-                'AuthProvider - Restored access token: ${accessToken.substring(0, 20)}...');
-          }
+          if (accessToken != null) {}
 
           // Cập nhật trạng thái thành authenticated
           _setState(AuthState.authenticated);
@@ -341,18 +411,14 @@ class AuthProvider extends ChangeNotifier {
           // Tải lại thông tin người dùng từ API nếu cần
           await loadUserInfo();
 
-          print('AuthProvider - User session restored successfully');
           return true;
         } else {
-          print('AuthProvider - No saved user data found');
           return false;
         }
       }
 
-      print('AuthProvider - Biometric authentication failed');
       return false;
     } catch (e) {
-      print('AuthProvider - Error authenticating with biometric: $e');
       return false;
     }
   }

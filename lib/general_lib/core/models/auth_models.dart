@@ -20,45 +20,40 @@ class OtpVerificationRequest {
   final String phoneNumber;
   final String otp;
   final String purpose;
-  final String userType;
 
   const OtpVerificationRequest({
     required this.phoneNumber,
     required this.otp,
     required this.purpose,
-    this.userType = 'CUSTOMER',
   });
 
   Map<String, dynamic> toJson() => {
         'phoneNumber': phoneNumber,
         'otp': otp,
         'purpose': purpose,
-        'userType': userType,
       };
 }
 
 class LoginRequest {
   final String emailOrPhone;
   final String password;
-  final String userType;
 
   const LoginRequest({
     required this.emailOrPhone,
     required this.password,
-    this.userType = 'CUSTOMER',
   });
 
   Map<String, dynamic> toJson() => {
         'emailOrPhone': emailOrPhone,
         'password': password,
-        'userType': userType,
       };
 }
 
 class AuthResponse {
   final bool success;
   final String? message;
-  final Map<String, dynamic>? data;
+  final dynamic
+      data; // Change from Map<String, dynamic>? to dynamic to handle both boolean and Map
   final String? timestamp;
 
   const AuthResponse({
@@ -78,16 +73,32 @@ class AuthResponse {
   }
 
   // Helper methods to extract user data from data object
-  String? get accessToken => data?['accessToken'];
-  String? get refreshToken => data?['refreshToken'];
-  String? get userId => data?['userId'];
-  String? get email => data?['email'];
-  String? get phoneNumber => data?['phoneNumber'];
-  String? get tokenType => data?['tokenType'];
-  int? get expiresIn => data?['expiresIn'];
-  List<String>? get roles =>
-      data?['roles'] != null ? List<String>.from(data!['roles']) : null;
-  String? get userType => data?['userType'];
+  String? get accessToken => _getDataValue<String>('accessToken');
+  String? get refreshToken => _getDataValue<String>('refreshToken');
+  String? get userId => _getDataValue<String>('userId');
+  String? get email => _getDataValue<String>('email');
+  String? get phoneNumber => _getDataValue<String>('phoneNumber');
+  String? get tokenType => _getDataValue<String>('tokenType');
+  int? get expiresIn => _getDataValue<int>('expiresIn');
+  List<String>? get roles {
+    if (data is Map<String, dynamic> && data['roles'] != null) {
+      return List<String>.from(data['roles']);
+    }
+    return null;
+  }
+
+  String? get userType => _getDataValue<String>('userType');
+
+  // Helper method to safely extract values from data
+  T? _getDataValue<T>(String key) {
+    if (data is Map<String, dynamic>) {
+      return data[key] as T?;
+    }
+    return null;
+  }
+
+  // Helper method to check if data is a Map (for user data)
+  bool get hasUserData => data is Map<String, dynamic>;
 }
 
 class OtpResponse {

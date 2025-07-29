@@ -1,6 +1,6 @@
 class ApiEndpoints {
   // Base
-  static const String baseUrl = 'https://gateway.soramall.co/api/v1';
+  static const String baseUrl = 'https://gateway.soramall.co/api/v1/auth';
 
   // rider endpoints
   static const String checkPhoneNumber = '/rider/check-phone/{phoneNumber}';

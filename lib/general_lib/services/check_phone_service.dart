@@ -7,10 +7,8 @@ class CheckPhoneService {
       final response = await ApiClient.get(
         ApiEndpoints.checkPhoneNumber.replaceFirst('{phoneNumber}', phoneNumber),
       );
-      
-      // API response: { "success": true, "message": "...", "data": true/false }
-      if (response.containsKey('data')) {
-        return response['data'] == true;
+      if (response['data'] == true) {
+        return true; // Phone number exists
       }
       
       return false;

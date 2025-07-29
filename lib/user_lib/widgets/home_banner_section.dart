@@ -18,7 +18,7 @@ class HomeBannerSection extends StatelessWidget {
           width: double.infinity,
           child: Stack(
             children: [
-              // Banner image at the top
+              // Banner image
               Positioned(
                 top: 0,
                 left: 0,
@@ -38,14 +38,46 @@ class HomeBannerSection extends StatelessWidget {
                   ),
                 ),
               ),
-              // Content
+
+              // "Tích điểm"
+              // Hiển thị điểm + icon ngôi sao vàng ở góc trên bên phải
+              Positioned(
+                top: 20,
+                right: 20,
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.85),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.star_outline_outlined,
+                        color: Colors.amber,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '120', // <-- thay bằng điểm thật nếu có
+                        style: AppTheme.caption.copyWith(
+                          color: AppTheme.primaryBlack,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // Nội dung chính
               Padding(
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Top padding
-                    // Greeting text
                     Row(
                       children: [
                         const SizedBox(width: 10),
@@ -65,8 +97,7 @@ class HomeBannerSection extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(
-                        height: 30), // Space for location section overlap
+                    const SizedBox(height: 20),
                   ],
                 ),
               ),

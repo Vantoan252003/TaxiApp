@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'api_exception.dart';
 
 class ApiClient {
-  static const String _baseUrl = 'https://gateway.soramall.co/api/v1';
+  static const String _baseUrl = 'https://gateway.soramall.co/api/v1/auth';
   static const Duration _timeout = Duration(seconds: 30);
 
   static final Map<String, String> _defaultHeaders = {

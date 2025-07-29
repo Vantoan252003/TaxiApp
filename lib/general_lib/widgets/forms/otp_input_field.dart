@@ -85,10 +85,16 @@ class OtpInputField extends StatelessWidget {
                   FocusScope.of(context).requestFocus(focusNodes[index + 1]);
                 } else {
                   FocusScope.of(context).unfocus();
-                  // Check if all fields are filled
+                  // Check if all fields are filled and auto-verify
                   if (controllers
                       .every((controller) => controller.text.isNotEmpty)) {
-                    onCompleted?.call();
+                    // Add a small delay to ensure the last digit is properly set
+                    Future.delayed(const Duration(milliseconds: 100), () {
+                      if (controllers
+                          .every((controller) => controller.text.isNotEmpty)) {
+                        onCompleted?.call();
+                      }
+                    });
                   }
                 }
               } else {

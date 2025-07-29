@@ -20,11 +20,10 @@ class HomeLocationInput extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(10),
         child: Row(
           children: [
             _buildIcon(),
-            const SizedBox(width: 12),
             Expanded(child: _buildContent()),
             if (!isLoading) _buildTrailingIcon(),
           ],
@@ -51,10 +50,9 @@ class HomeLocationInput extends StatelessWidget {
         children: [
           const SizedBox(
             width: 16,
-            height: 16,
+            height: 4,
             child: CircularProgressIndicator(strokeWidth: 2),
           ),
-          const SizedBox(width: 8),
           Text(text, style: AppTheme.body2),
         ],
       );

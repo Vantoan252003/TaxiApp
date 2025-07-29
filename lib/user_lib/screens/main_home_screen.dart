@@ -89,14 +89,12 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
                   // Banner Section with banner.png
                   const HomeBannerSection(),
 
-
                   // Location Input Section
                   HomeLocationSection(
                     currentLocation: placeProvider.isLoadingLocation
                         ? AppConstants.loadingLocationText
                         : placeProvider.currentLocation,
                     isLoadingLocation: placeProvider.isLoadingLocation,
-                    destinationHint: AppConstants.destinationPlaceholder,
                     onCurrentLocationTap: _getCurrentLocation,
                     onDestinationTap: _openDestinationSearch,
                   ),
@@ -128,8 +126,7 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
                             const SizedBox(height: 20),
 
                             // Stats Section - Thông tin chuyến xe, tích điểm, tiết kiệm
-                            const HomeStatsSection(),
-                            const SizedBox(height: 10),
+                   
 
                             // Popular Places
                             const HomePopularPlaces(),

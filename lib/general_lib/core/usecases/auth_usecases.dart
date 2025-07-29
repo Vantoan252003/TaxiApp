@@ -33,7 +33,6 @@ class VerifyOtpUseCase {
       phoneNumber: phoneNumber,
       otp: otp,
       purpose: purpose,
-      userType: 'CUSTOMER',
     );
     return await _repository.verifyOtp(request);
   }
@@ -51,7 +50,6 @@ class LoginUseCase {
     final request = LoginRequest(
       emailOrPhone: emailOrPhone,
       password: password,
-      userType: 'CUSTOMER',
     );
     return await _repository.login(request);
   }

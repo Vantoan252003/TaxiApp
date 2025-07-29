@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:taxi_app/general_lib/screens/phone_input_screen.dart';
 import '../constants/app_theme.dart';
 import '../constants/app_constants.dart';
 import '../core/providers/auth_provider.dart';
@@ -156,7 +157,8 @@ class _SignInScreenState extends State<SignInScreen> {
                     BiometricLoginButton(
                       onSuccess: () {
                         Navigator.of(context).pushAndRemoveUntil(
-                          MaterialPageRoute(builder: (context) => const HomeScreen()),
+                          MaterialPageRoute(
+                              builder: (context) => const HomeScreen()),
                           (route) => false,
                         );
                       },
@@ -178,7 +180,11 @@ class _SignInScreenState extends State<SignInScreen> {
                         text: 'Bạn chưa có tài khoản? Quay lại để đăng ký',
                         type: CustomButtonType.text,
                         onPressed: () {
-                          Navigator.of(context).pop();
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => const PhoneInputScreen(),
+                            ),
+                          );
                         },
                       ),
                     ),
@@ -213,7 +219,6 @@ class _SignInScreenState extends State<SignInScreen> {
 
       if (mounted) {
         if (authProvider.state == AuthState.authenticated) {
-          // Navigate to home screen
           Navigator.of(context).pushAndRemoveUntil(
             MaterialPageRoute(builder: (context) => const HomeScreen()),
             (route) => false,
