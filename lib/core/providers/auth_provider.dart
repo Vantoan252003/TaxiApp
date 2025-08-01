@@ -213,9 +213,8 @@ class AuthProvider extends ChangeNotifier {
       return;
     }
 
-    // Kiểm tra accessToken trong SharedPreferences
-    final prefs = await SharedPreferences.getInstance();
-    final accessToken = prefs.getString(_accessTokenKey);
+    
+   
 
     final service = GetUserinfoService();
     final userInfo = await service.fetchUserInfo();

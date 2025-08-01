@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:vietmap_flutter_gl/vietmap_flutter_gl.dart';
 
 class RideScreen extends StatefulWidget {
   final String origin;
   final String destination;
+  final VietmapController? mapController;
 
   const RideScreen({
     super.key,
     required this.origin,
     required this.destination,
+    this.mapController,
   });
 
   @override
@@ -131,44 +134,18 @@ class _RideScreenState extends State<RideScreen> {
   }
 
   Widget _buildMapSection() {
-    return Container(
-      margin: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade200,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade300),
-      ),
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.map,
-              size: 64,
-              color: Colors.grey.shade600,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'VietMap sẽ được tích hợp ở đây',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey.shade600,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Hiển thị tuyến đường từ ${widget.origin} đến ${widget.destination}',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey.shade500,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
+    widget.mapController?.setStyle(
+      "https://maps.vietmap.vn/api/maps/raster/styles.json?apikey=YOUR_API_KEY_HERE");
+    return VietmapGL(
+        styleString:
+            'https://maps.vietmap.vn/api/maps/light/styles.json?apikey=8e17c07d6fd7dacdb1e2e442ba74b4edbf874b863f3ac04d',
+        initialCameraPosition:
+            CameraPosition(target: LatLng(10.762317, 106.654551)),
+        onMapCreated: (VietmapController controller) {
+          // setState(() {
+          //   widget.mapController = controller;
+          // });
+        });
   }
 
   Widget _buildBottomSection() {

@@ -81,8 +81,18 @@ class LocationService {
             'Access token not found. User may not be authenticated.');
       }
 
-      final endpoint =
+      // Get current position for focus parameter
+      final currentPosition = await getCurrentPosition();
+      String endpoint =
           '${ApiEndpoints.autocomplete}?text=${Uri.encodeComponent(query)}';
+
+      // Add focus parameter if we have current position
+      if (currentPosition != null) {
+        final focus =
+            '${currentPosition.latitude},${currentPosition.longitude}';
+        endpoint += '&focus=${Uri.encodeComponent(focus)}';
+      }
+
       final headers = {
         'Authorization': 'Bearer $accessToken',
       };

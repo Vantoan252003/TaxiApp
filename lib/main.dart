@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'general_lib/screens/splash_screen.dart';
 import 'general_lib/screens/auth_wrapper.dart';
 import 'core/services/service_locator.dart';
@@ -9,8 +8,6 @@ import 'core/providers/place_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
-
   // Initialize service locator
   ServiceLocator.instance.registerServices();
 

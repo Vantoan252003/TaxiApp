@@ -4,7 +4,7 @@ import '../../../core/services/location_cache_service.dart';
 import '../../../core/providers/place_provider.dart';
 import '../../../data/models/place_model.dart';
 import '../widgets/index.dart';
-import '../../ride/screen/ride_screen.dart';
+import '../../booking/page/ride_screen.dart';
 
 class DestinationSelectionScreen extends StatefulWidget {
   const DestinationSelectionScreen({super.key});
@@ -111,6 +111,18 @@ class _DestinationSelectionScreenState
     );
   }
 
+  String _formatDistance(double distance) {
+    if (distance < 1.0) {
+      // Convert to meters and round to 3 decimal places
+      final meters = (distance * 1000).round();
+      return '${meters}m';
+    } else {
+      // Round to 1 decimal place for km
+      final km = (distance * 10).round() / 10;
+      return '${km}km';
+    }
+  }
+
   void _navigateToRideScreen() {
     if (_originController.text.isNotEmpty &&
         _destinationController.text.isNotEmpty) {
@@ -180,7 +192,26 @@ class _DestinationSelectionScreenState
         ),
         child: Row(
           children: [
-            Icon(Icons.location_on, color: Colors.grey.shade600, size: 20),
+            SizedBox(
+              width: 48,
+              child: Column(
+                children: [
+                  Icon(Icons.location_on,
+                      color: Colors.grey.shade600, size: 16),
+                  if (place.distance !=null) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      _formatDistance(place.distance!),
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: Colors.black,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -195,30 +226,14 @@ class _DestinationSelectionScreenState
                     ),
                   ),
                   const SizedBox(height: 2),
-                  Row(
-                    children: [
-                      if (place.distance != null) ...[
-                        Text(
-                          "${place.distance} • ",
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey.shade600,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                      Expanded(
-                        child: Text(
-                          place.display,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey.shade600,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
+                  Text(
+                    place.display,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey.shade600,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
