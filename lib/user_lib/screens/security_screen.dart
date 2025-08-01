@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../general_lib/constants/app_theme.dart';
-import '../../general_lib/core/providers/auth_provider.dart';
+import '../../core/constants/app_theme.dart';
+import '../../core/providers/auth_provider.dart';
 import '../widgets/security_menu_item.dart';
 
 class SecurityScreen extends StatefulWidget {

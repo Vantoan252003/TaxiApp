@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../general_lib/constants/app_theme.dart';
+import '../../core/constants/app_theme.dart';
 
 class CustomBottomNavigationBar extends StatelessWidget {
   final int currentIndex;
@@ -43,11 +43,10 @@ class CustomBottomNavigationBar extends StatelessWidget {
                 label: 'Ví',
                 index: 2,
               ),
-              _buildMicNavItem(),
               _buildNavItem(
                 icon: Icons.history_outlined,
                 activeIcon: Icons.history,
-                label: 'Hoạt đọng',
+                label: 'Hoạt động',
                 index: 3,
               ),
               _buildNavItem(
@@ -98,42 +97,4 @@ class CustomBottomNavigationBar extends StatelessWidget {
     );
   }
 
-  Widget _buildMicNavItem() {
-    return GestureDetector(
-      onTap: () => onTap(1), // Index 1 cho mic button
-      behavior: HitTestBehavior.opaque,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Container nổi lên trên để tạo hiệu ứng floating
-            Transform.translate(
-              offset: const Offset(0, -8), // Nổi lên 8px
-              child: Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.amber, // Màu vàng
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.amber.withOpacity(0.3),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.mic,
-                  color: Colors.white,
-                  size: 24,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }

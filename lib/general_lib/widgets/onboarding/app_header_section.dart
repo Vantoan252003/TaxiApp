@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../constants/app_theme.dart';
-import '../../constants/app_constants.dart';
+import '../../../core/constants/app_theme.dart';
+import '../../../core/constants/app_constants.dart';
 
 class AppHeaderSection extends StatelessWidget {
   const AppHeaderSection({super.key});

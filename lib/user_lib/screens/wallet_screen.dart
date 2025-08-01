@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../general_lib/constants/app_theme.dart';
-import '../models/wallet_model.dart';
-import '../widgets/wallet_balance_card.dart';
-import '../widgets/payment_method_card.dart';
+import '../../core/constants/app_theme.dart';
+import '../../data/models/wallet_model.dart';
+import '../../presentation/payment/widgets/wallet_balance_card.dart';
+import '../../presentation/payment/widgets/payment_method_card.dart';
 import '../widgets/transaction_item.dart';
 
 class WalletScreen extends StatefulWidget {

@@ -3,8 +3,9 @@ import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'general_lib/screens/splash_screen.dart';
 import 'general_lib/screens/auth_wrapper.dart';
-import 'general_lib/core/di/service_locator.dart';
-import 'general_lib/core/providers/auth_provider.dart';
+import 'core/services/service_locator.dart';
+import 'core/providers/auth_provider.dart';
+import 'core/providers/place_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,6 +27,9 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (_) => AuthProvider(),
           lazy: false, // Initialize immediately
+        ),
+        ChangeNotifierProvider(
+          create: (_) => PlaceProvider(),
         ),
       ],
       child: MaterialApp(

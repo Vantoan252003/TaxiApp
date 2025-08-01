@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../general_lib/constants/app_theme.dart';
-import '../../general_lib/core/providers/auth_provider.dart';
-import '../../general_lib/models/user_model.dart';
+import '../../core/constants/app_theme.dart';
+import '../../core/providers/auth_provider.dart';
+import '../../data/models/user_model.dart';
 
 class ProfileHeader extends StatelessWidget {
   const ProfileHeader({super.key});

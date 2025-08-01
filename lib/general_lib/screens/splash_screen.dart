@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../services/first_launch_service.dart';
-import '../core/providers/auth_provider.dart';
-import '../constants/app_theme.dart';
-import '../constants/app_constants.dart';
+import '../../core/services/first_launch_service.dart';
+import '../../core/providers/auth_provider.dart';
+import '../../core/constants/app_theme.dart';
+import '../../core/constants/app_constants.dart';
 import 'welcome_screen.dart';
-import '../../user_lib/screens/home_screen.dart';
+import '../../presentation/home/screen/home_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   final Widget homeScreen;

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../constants/app_theme.dart';
-import '../core/providers/auth_provider.dart';
-import '../services/biometric_service.dart';
+import '../../core/constants/app_theme.dart';
+import '../../core/providers/auth_provider.dart';
+import '../../core/services/biometric_service.dart';
 
 class BiometricLoginButton extends StatefulWidget {
   final VoidCallback? onSuccess;

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../constants/app_theme.dart';
+import '../../../core/constants/app_theme.dart';
 
 class OtpInputField extends StatelessWidget {
   final List<TextEditingController> controllers;

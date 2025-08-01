@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../general_lib/constants/app_theme.dart';
+import '../../core/constants/app_theme.dart';
 
 class LogoutDialog extends StatelessWidget {
   const LogoutDialog({super.key});

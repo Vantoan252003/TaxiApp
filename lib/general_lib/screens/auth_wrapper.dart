@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../core/providers/auth_provider.dart';
-import 'phone_input_screen.dart';
-import '../../user_lib/screens/home_screen.dart';
+import '../../core/providers/auth_provider.dart';
+import '../../presentation/auth/screen/phone_input_screen.dart';
+import '../../presentation/home/screen/home_screen.dart';
 
 class AuthWrapper extends StatefulWidget {
   const AuthWrapper({super.key});

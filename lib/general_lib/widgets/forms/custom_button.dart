@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../constants/app_theme.dart';
+import '../../../core/constants/app_theme.dart';
 
 enum CustomButtonType { primary, secondary, outline, text }
 

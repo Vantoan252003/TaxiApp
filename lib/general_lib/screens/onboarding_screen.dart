@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import '../widgets/onboarding/app_header_section.dart';
 import '../widgets/onboarding/terms_and_privacy_text.dart';
-import '../constants/app_theme.dart';
-import '../constants/app_constants.dart';
-import 'phone_input_screen.dart';
+import '../../core/constants/app_theme.dart';
+import '../../core/constants/app_constants.dart';
+import '../../presentation/auth/screen/phone_input_screen.dart';
 
 class OnboardingScreen extends StatelessWidget {
   final Widget? homeScreen;

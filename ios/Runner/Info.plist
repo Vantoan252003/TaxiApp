@@ -47,5 +47,9 @@
 	<true/>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Ứng dụng sử dụng Face ID để đăng nhập nhanh và bảo mật</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Ứng dụng cần quyền truy cập vị trí để hiển thị địa chỉ hiện tại và tìm đường đi</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Ứng dụng cần quyền truy cập vị trí để hiển thị địa chỉ hiện tại và tìm đường đi</string>
 </dict>
 </plist>
