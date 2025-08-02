@@ -10,7 +10,7 @@ class RegistrationService {
   }) async {
     try {
       final response = await ApiClient.post(
-        '/rider/register',
+        '/auth/rider/register',
         body: {
           'phoneNumber': phoneNumber,
           'password': password,

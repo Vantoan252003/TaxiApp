@@ -353,13 +353,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
         );
 
         if (mounted) {
-          // Save user data to AuthProvider after successful registration
-          final authProvider =
-              Provider.of<AuthProvider>(context, listen: false);
-     
-            await authProvider.saveUserAfterRegistration(response);
-          
-
           // Show success message
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -370,7 +363,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
           // Navigate to home screen directly
           Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (context) => const HomeScreen()),
+            MaterialPageRoute(builder: (context) => const SignInScreen()),
             (route) => false,
           );
         }

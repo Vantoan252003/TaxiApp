@@ -3,9 +3,10 @@ class ApiEndpoints {
   static const String baseUrl = 'https://gateway.soramall.co/api/v1';
 
   // rider endpoints
-  static const String checkPhoneNumber = '/auth/rider/check-phone/{phoneNumber}';
-  static const String sendOtp = '/rider/otp/send';
-  static const String verifyOtp = '/rider/otp/verify';
+  static const String checkPhoneNumber =
+      '/auth/rider/check-phone/{phoneNumber}';
+  static const String sendOtp = '/auth/rider/otp/send';
+  static const String verifyOtp = '/auth/rider/otp/verify';
   static const String login = '/auth/rider/login';
   static const String register = '/auth/rider/register';
   static const String logout = '/auth/rider/logout';

@@ -213,9 +213,6 @@ class AuthProvider extends ChangeNotifier {
       return;
     }
 
-    
-   
-
     final service = GetUserinfoService();
     final userInfo = await service.fetchUserInfo();
 
