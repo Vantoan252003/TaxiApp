@@ -67,12 +67,9 @@ class _AutocompleteFieldState extends State<AutocompleteField> {
       // Set new timer for debouncing
       _debounceTimer = Timer(const Duration(milliseconds: 500), () {
         if (mounted && _focusNode.hasFocus) {
-          try {
             final provider = context.read<PlaceProvider>();
             provider.searchPlaces(widget.controller.text);
-          } catch (e) {
-            print('Error searching places: $e');
-          }
+      
         }
       });
     }

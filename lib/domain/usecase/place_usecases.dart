@@ -34,3 +34,18 @@ class ReverseGeocodingUseCase {
     return await _repository.reverseGeocoding(lat: lat, lng: lng);
   }
 }
+
+// Use case for getting place details
+class GetPlaceDetailUseCase {
+  final PlaceRepository _repository;
+
+  GetPlaceDetailUseCase(this._repository);
+
+  Future<PlaceDetailResponse> execute(String refId) async {
+    if (refId.trim().isEmpty) {
+      throw Exception('RefId cannot be empty');
+    }
+
+    return await _repository.getPlaceDetail(refId.trim());
+  }
+}

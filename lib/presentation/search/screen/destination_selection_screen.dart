@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:vietmap_flutter_gl/vietmap_flutter_gl.dart';
 import '../../../core/services/location_cache_service.dart';
+import '../../../core/services/service_locator.dart';
 import '../../../core/providers/place_provider.dart';
 import '../../../data/models/place_model.dart';
+import '../../../domain/usecase/place_usecases.dart';
 import '../widgets/index.dart';
 import '../../booking/page/booking_screen.dart';
 
@@ -24,6 +27,7 @@ class _DestinationSelectionScreenState
   bool _isLoadingCurrentLocation = true;
   bool _isGettingCurrentLocation = false;
   String _lastFocusedField = 'origin';
+  String? _originRefId; // Store origin refId when user selects origin place
 
   @override
   void initState() {
@@ -115,6 +119,158 @@ class _DestinationSelectionScreenState
     }
   }
 
+  Future<void> _navigateToRideScreenWithPlaceDetails(
+      String destinationRefId) async {
+    if (_originController.text.isNotEmpty &&
+        _originController.text.trim().isNotEmpty &&
+        _destinationController.text.isNotEmpty &&
+        _destinationController.text.trim().isNotEmpty) {
+      print('DEBUG: Starting navigation with place details');
+      print('DEBUG: Destination RefId: $destinationRefId');
+      print('DEBUG: Origin text: ${_originController.text.trim()}');
+      print('DEBUG: Destination text: ${_destinationController.text.trim()}');
+
+      try {
+        // Show loading indicator
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          },
+        );
+
+        // Use stored origin refId or try to find it from search results
+        String? originRefId = _originRefId;
+        if (originRefId == null && context.mounted) {
+          final placeProvider =
+              Provider.of<PlaceProvider>(context, listen: false);
+          // Try to find the origin place in recent search results
+          for (final place in placeProvider.searchResults) {
+            if (place.name == _originController.text.trim()) {
+              originRefId = place.refId;
+              break;
+            }
+          }
+        }
+
+        print('DEBUG: Origin RefId found: $originRefId');
+
+        // Call place API for both origin and destination simultaneously
+        print('DEBUG: Calling place API for both points...');
+        final getPlaceDetailUseCase =
+            ServiceLocator.instance.get<GetPlaceDetailUseCase>();
+
+        LatLng? originLatLng;
+        LatLng? destinationLatLng;
+
+        // Call API for destination (always available)
+        final destinationResponse =
+            await getPlaceDetailUseCase.execute(destinationRefId);
+        if (destinationResponse.success &&
+            destinationResponse.data.isNotEmpty) {
+          final destinationDetail = destinationResponse.data.first;
+          destinationLatLng =
+              LatLng(destinationDetail.lat, destinationDetail.lng);
+          print(
+              'DEBUG: Destination coordinates: ${destinationDetail.lat}, ${destinationDetail.lng}');
+        }
+
+        // Call API for origin if refId is available
+        if (originRefId != null && originRefId.isNotEmpty) {
+          try {
+            final originResponse =
+                await getPlaceDetailUseCase.execute(originRefId);
+            if (originResponse.success && originResponse.data.isNotEmpty) {
+              final originDetail = originResponse.data.first;
+              originLatLng = LatLng(originDetail.lat, originDetail.lng);
+              print(
+                  'DEBUG: Origin coordinates from API: ${originDetail.lat}, ${originDetail.lng}');
+            }
+          } catch (e) {
+            print('DEBUG: Error getting origin coordinates: $e');
+            // Use default origin coordinates as fallback
+            originLatLng = const LatLng(10.762317, 106.654551);
+          }
+        } else {
+          // Check if origin is current location
+          if (_originController.text.trim() == "Vị trí hiện tại") {
+            print(
+                'DEBUG: Origin is current location, getting current coordinates...');
+            try {
+              // Get current location coordinates from cache
+              final cachedCoords =
+                  await LocationCacheService.getCachedCoordinates();
+              if (cachedCoords != null) {
+                originLatLng =
+                    LatLng(cachedCoords['lat']!, cachedCoords['lng']!);
+                print(
+                    'DEBUG: Current location coordinates from cache: ${cachedCoords['lat']}, ${cachedCoords['lng']}');
+              } else {
+                print(
+                    'DEBUG: Could not get current position from cache, using default coordinates');
+                originLatLng = const LatLng(10.762317, 106.654551);
+              }
+            } catch (e) {
+              print('DEBUG: Error getting current location: $e');
+              originLatLng = const LatLng(10.762317, 106.654551);
+            }
+          } else {
+            print(
+                'DEBUG: No origin RefId available, using default coordinates');
+            originLatLng = const LatLng(10.762317, 106.654551);
+          }
+        }
+
+        // Hide loading indicator
+        if (context.mounted) {
+          Navigator.pop(context);
+        }
+        if (destinationLatLng != null) {
+          // Navigate to ride screen with both coordinates
+          print('DEBUG: Navigating to RideScreen with both coordinates');
+          if (context.mounted) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => RideScreen(
+                  origin: _originController.text.trim(),
+                  destination: _destinationController.text.trim(),
+                  originLatLng: originLatLng,
+                  destinationLatLng: destinationLatLng,
+                ),
+              ),
+            );
+          }
+        } else {
+          print('DEBUG: Failed to get destination coordinates, using fallback');
+          // Fallback to regular navigation if destination API fails
+          _navigateToRideScreen();
+        }
+      } catch (e) {
+        print('DEBUG: Error in place API calls: $e');
+        // Hide loading indicator
+        if (context.mounted) {
+          Navigator.pop(context);
+        }
+
+        // Show error message
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Không thể lấy thông tin địa điểm: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+        // Fallback to regular navigation
+        _navigateToRideScreen();
+      }
+    }
+  }
+
   Widget _buildCurrentLocationButton() {
     return InkWell(
       onTap: _isGettingCurrentLocation ? null : _refreshCurrentLocation,
@@ -191,10 +347,11 @@ class _DestinationSelectionScreenState
           });
           if (_originController.text.isNotEmpty &&
               _originController.text.trim().isNotEmpty) {
-            _navigateToRideScreen();
+            _navigateToRideScreenWithPlaceDetails(place.refId);
           }
         } else {
           _originController.text = place.name;
+          _originRefId = place.refId; // Store origin refId
           setState(() {
             _isDestinationFocused = false;
             _isOriginFocused = false;
@@ -382,6 +539,7 @@ class _DestinationSelectionScreenState
               onOriginPlaceSelected: (place) {
                 setState(() {
                   _originController.text = place.name;
+                  _originRefId = place.refId; // Store refId
                 });
               },
               onDestinationPlaceSelected: (place) {
@@ -390,7 +548,7 @@ class _DestinationSelectionScreenState
                 });
                 if (_originController.text.isNotEmpty &&
                     _originController.text.trim().isNotEmpty) {
-                  _navigateToRideScreen();
+                  _navigateToRideScreenWithPlaceDetails(place.refId);
                 }
               },
               onOriginFocusChanged: (focused) {

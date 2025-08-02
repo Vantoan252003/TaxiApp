@@ -73,7 +73,7 @@ class FloatingAddressWidget extends StatelessWidget {
                       child: Text(
                         origin,
                         style: const TextStyle(
-                          fontSize: 14,
+                          fontSize: 16,
                           fontWeight: FontWeight.w500,
                           color: Colors.black87,
                         ),
@@ -107,7 +107,7 @@ class FloatingAddressWidget extends StatelessWidget {
                       child: Text(
                         destination,
                         style: const TextStyle(
-                          fontSize: 14,
+                          fontSize: 16,
                           fontWeight: FontWeight.w500,
                           color: Colors.black87,
                         ),

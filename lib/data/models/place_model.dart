@@ -249,3 +249,80 @@ class AutocompleteData {
     );
   }
 }
+
+// Place detail response models
+class PlaceDetailResponse {
+  final bool success;
+  final String message;
+  final List<PlaceDetailData> data;
+  final String timestamp;
+
+  PlaceDetailResponse({
+    required this.success,
+    required this.message,
+    required this.data,
+    required this.timestamp,
+  });
+
+  factory PlaceDetailResponse.fromJson(Map<String, dynamic> json) {
+    return PlaceDetailResponse(
+      success: json['success'] ?? false,
+      message: json['message'] ?? '',
+      data: (json['data'] as List<dynamic>?)
+              ?.map((item) => PlaceDetailData.fromJson(item))
+              .toList() ??
+          [],
+      timestamp: json['timestamp'] ?? '',
+    );
+  }
+}
+
+class PlaceDetailData {
+  final String display;
+  final String name;
+  final String street;
+  final String address;
+  final String city;
+  final String district;
+  final String ward;
+  final double lat;
+  final double lng;
+  final String hsNum;
+  final int cityId;
+  final int districtId;
+  final int wardId;
+
+  PlaceDetailData({
+    required this.display,
+    required this.name,
+    required this.street,
+    required this.address,
+    required this.city,
+    required this.district,
+    required this.ward,
+    required this.lat,
+    required this.lng,
+    required this.hsNum,
+    required this.cityId,
+    required this.districtId,
+    required this.wardId,
+  });
+
+  factory PlaceDetailData.fromJson(Map<String, dynamic> json) {
+    return PlaceDetailData(
+      display: json['display'] ?? '',
+      name: json['name'] ?? '',
+      street: json['street'] ?? '',
+      address: json['address'] ?? '',
+      city: json['city'] ?? '',
+      district: json['district'] ?? '',
+      ward: json['ward'] ?? '',
+      lat: (json['lat'] as num?)?.toDouble() ?? 0.0,
+      lng: (json['lng'] as num?)?.toDouble() ?? 0.0,
+      hsNum: json['hs_num'] ?? '',
+      cityId: json['city_id'] ?? 0,
+      districtId: json['district_id'] ?? 0,
+      wardId: json['ward_id'] ?? 0,
+    );
+  }
+}

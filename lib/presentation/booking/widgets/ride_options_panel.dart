@@ -97,6 +97,7 @@ class _RideOptionsPanelState extends State<RideOptionsPanel> {
               child: Column(
                 children: [
                   _buildRideOptions(),
+                 
                 ],
               ),
             ),
@@ -233,27 +234,19 @@ class _RideOptionsPanelState extends State<RideOptionsPanel> {
 
   Widget _buildControlWidgets() {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 18, vertical: 4),
       child: Row(
         children: [
           // Payment method
           Expanded(
+  
             child: _buildControlWidget(
               icon: Icons.payment,
-              title: '$_selectedPaymentMethod*5...',
+              title: '$_selectedPaymentMethod*',
               onTap: _showPaymentOptions,
             ),
           ),
-          const SizedBox(width: 8),
-          // Schedule
-          Expanded(
-            child: _buildControlWidget(
-              icon: Icons.schedule,
-              title: _selectedSchedule,
-              onTap: _showScheduleOptions,
-            ),
-          ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 12),
           // Promo
           Expanded(
             child: _buildControlWidget(

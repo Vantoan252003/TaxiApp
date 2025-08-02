@@ -8,12 +8,16 @@ class RideScreen extends StatefulWidget {
   final String origin;
   final String destination;
   final VietmapController? mapController;
+  final LatLng? originLatLng;
+  final LatLng? destinationLatLng;
 
   const RideScreen({
     super.key,
     required this.origin,
     required this.destination,
     this.mapController,
+    this.originLatLng,
+    this.destinationLatLng,
   });
 
   @override
@@ -23,9 +27,29 @@ class RideScreen extends StatefulWidget {
 class _RideScreenState extends State<RideScreen> {
   String _selectedVehicleType = 'beCar Plus';
 
-  // Tọa độ mẫu cho điểm đi và điểm đến
-  final LatLng _originLatLng = const LatLng(10.762317, 106.654551);
-  final LatLng _destinationLatLng = const LatLng(10.772317, 106.664551);
+  // Tọa độ mẫu cho điểm đi và điểm đến (fallback values)
+  late final LatLng _originLatLng;
+  late final LatLng _destinationLatLng;
+
+  @override
+  void initState() {
+    super.initState();
+    // Use provided coordinates or fallback to default values
+    _originLatLng = widget.originLatLng ?? const LatLng(10.762317, 106.654551);
+    _destinationLatLng =
+        widget.destinationLatLng ?? const LatLng(10.772317, 106.664551);
+
+    // Debug: Check coordinates
+    print('DEBUG: RideScreen initialized');
+    print(
+        'DEBUG: Origin from widget: ${widget.originLatLng?.latitude}, ${widget.originLatLng?.longitude}');
+    print(
+        'DEBUG: Destination from widget: ${widget.destinationLatLng?.latitude}, ${widget.destinationLatLng?.longitude}');
+    print(
+        'DEBUG: Final origin: ${_originLatLng.latitude}, ${_originLatLng.longitude}');
+    print(
+        'DEBUG: Final destination: ${_destinationLatLng.latitude}, ${_destinationLatLng.longitude}');
+  }
 
   @override
   Widget build(BuildContext context) {

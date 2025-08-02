@@ -7,6 +7,7 @@ abstract class PlaceRepository {
     required double lat,
     required double lng,
   });
+  Future<PlaceDetailResponse> getPlaceDetail(String refId);
 }
 
 class PlaceRepositoryImpl implements PlaceRepository {
@@ -21,5 +22,10 @@ class PlaceRepositoryImpl implements PlaceRepository {
     required double lng,
   }) async {
     return await LocationService.reverseGeocoding(lat: lat, lng: lng);
+  }
+
+  @override
+  Future<PlaceDetailResponse> getPlaceDetail(String refId) async {
+    return await LocationService.getPlaceDetail(refId);
   }
 }

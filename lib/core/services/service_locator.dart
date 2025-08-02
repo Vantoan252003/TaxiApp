@@ -24,6 +24,8 @@ class ServiceLocator {
         SearchPlacesUseCase(_services[PlaceRepository]);
     _services[ReverseGeocodingUseCase] =
         ReverseGeocodingUseCase(_services[PlaceRepository]);
+    _services[GetPlaceDetailUseCase] =
+        GetPlaceDetailUseCase(_services[PlaceRepository]);
   }
 
   // Get service

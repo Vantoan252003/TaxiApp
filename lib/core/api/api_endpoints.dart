@@ -26,5 +26,5 @@ class ApiEndpoints {
   static const String getRideById = '/rides/{id}';
   static const String cancelRide = '/rides/{id}/cancel';
   //booking endpoints
-  static const String place = 'location/place';
+  static const String place = '/location/place';
 }
