@@ -90,7 +90,7 @@ class LocationService {
       if (currentPosition != null) {
         final focus =
             '${currentPosition.latitude},${currentPosition.longitude}';
-        endpoint += '&focus=${Uri.encodeComponent(focus)}';
+        endpoint += '&focus=${Uri.encodeComponent(focus)}&circleRadius=100000&circleCenter=${Uri.encodeComponent(focus)}';
       }
 
       final headers = {

@@ -52,7 +52,10 @@ class _SignInScreenState extends State<SignInScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppTheme.primaryBlack),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const PhoneInputScreen()),
+          ),
         ),
       ),
       body: SafeArea(
@@ -176,9 +179,8 @@ class _SignInScreenState extends State<SignInScreen> {
 
                     // Don't have account
                     Center(
-                      child: CustomButton(
-                        text: 'Bạn chưa có tài khoản? Quay lại để đăng ký',
-                        type: CustomButtonType.text,
+                      child: TextButton(
+                        child: Text('Bạn chưa có tài khoản? Quay lại để đăng ký'),
                         onPressed: () {
                           Navigator.of(context).push(
                             MaterialPageRoute(

@@ -22,14 +22,13 @@ class _DestinationSelectionScreenState
   bool _isDestinationFocused = false;
   bool _isOriginFocused = false;
   bool _isLoadingCurrentLocation = true;
-  bool _isGettingCurrentLocation = false; // Track when getting current location
-  String _lastFocusedField = 'origin'; // Track which field was last focused
+  bool _isGettingCurrentLocation = false;
+  String _lastFocusedField = 'origin';
 
   @override
   void initState() {
     super.initState();
     _loadCurrentLocation();
-    _originController.addListener(_onOriginTextChanged);
   }
 
   Future<void> _loadCurrentLocation() async {
@@ -38,18 +37,10 @@ class _DestinationSelectionScreenState
     });
 
     try {
-      // Try to get cached address first
       final cachedAddress = await LocationCacheService.getCurrentAddress();
-
-      if (cachedAddress != null) {
-        setState(() {
-          _originController.text = cachedAddress;
-        });
-      } else {
-        setState(() {
-          _originController.text = "Vị trí hiện tại";
-        });
-      }
+      setState(() {
+        _originController.text = cachedAddress ?? "Vị trí hiện tại";
+      });
     } finally {
       setState(() {
         _isLoadingCurrentLocation = false;
@@ -65,16 +56,9 @@ class _DestinationSelectionScreenState
     try {
       final address =
           await LocationCacheService.updateAndCacheCurrentLocation();
-
-      if (address != null) {
-        setState(() {
-          _originController.text = address;
-        });
-      } else {
-        setState(() {
-          _originController.text = "Vị trí hiện tại";
-        });
-      }
+      setState(() {
+        _originController.text = address ?? "Vị trí hiện tại";
+      });
     } finally {
       setState(() {
         _isGettingCurrentLocation = false;
@@ -84,7 +68,6 @@ class _DestinationSelectionScreenState
 
   @override
   void dispose() {
-    _originController.removeListener(_onOriginTextChanged);
     _originController.dispose();
     _destinationController.dispose();
     _scrollController.dispose();
@@ -97,12 +80,6 @@ class _DestinationSelectionScreenState
     _destinationController.text = temp;
   }
 
-  void _onOriginTextChanged() {
-    setState(() {
-      // This will trigger rebuild to show/hide current location item
-    });
-  }
-
   void _scrollToTop() {
     _scrollController.animateTo(
       0,
@@ -113,11 +90,9 @@ class _DestinationSelectionScreenState
 
   String _formatDistance(double distance) {
     if (distance < 1.0) {
-      // Convert to meters and round to 3 decimal places
       final meters = (distance * 1000).round();
       return '${meters}m';
     } else {
-      // Round to 1 decimal place for km
       final km = (distance * 10).round() / 10;
       return '${km}km';
     }
@@ -125,17 +100,65 @@ class _DestinationSelectionScreenState
 
   void _navigateToRideScreen() {
     if (_originController.text.isNotEmpty &&
-        _destinationController.text.isNotEmpty) {
+        _originController.text.trim().isNotEmpty &&
+        _destinationController.text.isNotEmpty &&
+        _destinationController.text.trim().isNotEmpty) {
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => RideScreen(
-            origin: _originController.text,
-            destination: _destinationController.text,
+            origin: _originController.text.trim(),
+            destination: _destinationController.text.trim(),
           ),
         ),
       );
     }
+  }
+
+  Widget _buildCurrentLocationButton() {
+    return InkWell(
+      onTap: _isGettingCurrentLocation ? null : _refreshCurrentLocation,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.grey.shade200),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.my_location, color: Colors.blue[600], size: 20),
+            const SizedBox(width: 12),
+            if (_isGettingCurrentLocation) ...[
+              const SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'Đang lấy vị trí hiện tại...',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey[600],
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ] else ...[
+              const Text(
+                'Sử dụng vị trí hiện tại',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.black,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildSearchResults(PlaceProvider placeProvider) {
@@ -166,18 +189,20 @@ class _DestinationSelectionScreenState
             _isDestinationFocused = false;
             _isOriginFocused = false;
           });
+          if (_originController.text.isNotEmpty &&
+              _originController.text.trim().isNotEmpty) {
+            _navigateToRideScreen();
+          }
         } else {
           _originController.text = place.name;
           setState(() {
             _isDestinationFocused = false;
             _isOriginFocused = false;
           });
-          // Auto focus to destination field and scroll to top
           WidgetsBinding.instance.addPostFrameCallback((_) {
             setState(() {
               _isDestinationFocused = true;
             });
-            // Scroll to top to show destination input
             _scrollToTop();
           });
         }
@@ -193,15 +218,15 @@ class _DestinationSelectionScreenState
         child: Row(
           children: [
             SizedBox(
-              width: 48,
+              width: 40,
               child: Column(
                 children: [
                   Icon(Icons.location_on,
                       color: Colors.grey.shade600, size: 16),
-                  if (place.distance !=null) ...[
+                  if (place.distance != null) ...[
                     const SizedBox(height: 2),
                     Text(
-                      _formatDistance(place.distance!),
+                      _formatDistance(place.distance),
                       style: const TextStyle(
                         fontSize: 11,
                         color: Colors.black,
@@ -289,87 +314,6 @@ class _DestinationSelectionScreenState
     );
   }
 
-  Widget _buildErrorState(PlaceProvider placeProvider) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          "Lỗi tìm kiếm",
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: Colors.black,
-          ),
-        ),
-        const SizedBox(height: 16),
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.grey.shade200),
-          ),
-          child: Row(
-            children: [
-              Icon(Icons.error_outline, color: Colors.red[600], size: 20),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  placeProvider.errorMessage ?? 'Có lỗi xảy ra',
-                  style: TextStyle(color: Colors.red[600], fontSize: 14),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildCurrentLocationLoadingState() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          "Vị trí hiện tại",
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: Colors.black,
-          ),
-        ),
-        const SizedBox(height: 16),
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.grey.shade200),
-          ),
-          child: Row(
-            children: [
-              Icon(Icons.my_location, color: Colors.blue[600], size: 20),
-              const SizedBox(width: 12),
-              const SizedBox(
-                width: 16,
-                height: 16,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                'Đang lấy vị trí hiện tại...',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[600],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -393,7 +337,6 @@ class _DestinationSelectionScreenState
         actions: [
           TextButton(
             onPressed: () {
-              // TODO: Navigate to map selection
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                     content:
@@ -417,8 +360,6 @@ class _DestinationSelectionScreenState
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Current location indicator
-
             LocationInputSection(
               originController: _originController,
               destinationController: _destinationController,
@@ -447,8 +388,10 @@ class _DestinationSelectionScreenState
                 setState(() {
                   _destinationController.text = place.name;
                 });
-                // Navigate to ride screen when both origin and destination are set
-                _navigateToRideScreen();
+                if (_originController.text.isNotEmpty &&
+                    _originController.text.trim().isNotEmpty) {
+                  _navigateToRideScreen();
+                }
               },
               onOriginFocusChanged: (focused) {
                 setState(() {
@@ -463,12 +406,6 @@ class _DestinationSelectionScreenState
                   _isOriginFocused = false;
                   if (focused) _lastFocusedField = 'destination';
                 });
-                // Navigate to ride screen when destination loses focus and both fields are filled
-                if (!focused &&
-                    _originController.text.isNotEmpty &&
-                    _destinationController.text.isNotEmpty) {
-                  _navigateToRideScreen();
-                }
               },
               onGetCurrentLocation: _refreshCurrentLocation,
             ),
@@ -493,7 +430,7 @@ class _DestinationSelectionScreenState
             const SizedBox(height: 24),
             Consumer<PlaceProvider>(
               builder: (context, placeProvider, child) {
-                // Show search results instead of popular destinations when there are results
+                // Show search results
                 if (placeProvider.hasResults) {
                   return _buildSearchResults(placeProvider);
                 }
@@ -503,26 +440,32 @@ class _DestinationSelectionScreenState
                   return _buildLoadingState();
                 }
 
-                // Show error state
-                if (placeProvider.state == PlaceSearchState.error) {
-                  return _buildErrorState(placeProvider);
-                }
+                // Show current location button + popular destinations
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Current location button (chỉ hiện khi origin trống hoặc đang loading)
+                    if (_originController.text.isEmpty ||
+                        _originController.text == "Vị trí hiện tại")
+                      _buildCurrentLocationButton(),
 
-                // Show current location loading state
-                if (_isGettingCurrentLocation) {
-                  return _buildCurrentLocationLoadingState();
-                }
-
-                // Show popular destinations when no search
-                return PopularDestinationsSection(
-                  onDestinationSelected: (destination) {
-                    _destinationController.text = destination;
-                    setState(() {
-                      _isDestinationFocused = false;
-                    });
-                  },
-                  onGetCurrentLocation: _refreshCurrentLocation,
-                  showCurrentLocation: _originController.text.isEmpty,
+                    // Popular destinations
+                    PopularDestinationsSection(
+                      onDestinationSelected: (destination) {
+                        _destinationController.text = destination;
+                        setState(() {
+                          _isDestinationFocused = false;
+                        });
+                        if (_originController.text.isNotEmpty &&
+                            _originController.text.trim().isNotEmpty) {
+                          _navigateToRideScreen();
+                        }
+                      },
+                      onGetCurrentLocation: _refreshCurrentLocation,
+                      showCurrentLocation:
+                          false, // Tắt vì đã có button riêng ở trên
+                    ),
+                  ],
                 );
               },
             ),

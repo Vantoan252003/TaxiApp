@@ -20,6 +20,11 @@ class RideScreen extends StatefulWidget {
 class _RideScreenState extends State<RideScreen> {
   String _selectedVehicleType = 'Xe máy';
   double _estimatedPrice = 25000.0;
+  VietmapController? _mapController;
+  
+  // Tọa độ mẫu cho điểm đi và điểm đến (có thể thay đổi theo nhu cầu)
+  final LatLng _originLatLng = const LatLng(10.762317, 106.654551); // Điểm đi
+  final LatLng _destinationLatLng = const LatLng(10.772317, 106.664551); // Điểm đến
 
   @override
   Widget build(BuildContext context) {
@@ -134,18 +139,94 @@ class _RideScreenState extends State<RideScreen> {
   }
 
   Widget _buildMapSection() {
-    widget.mapController?.setStyle(
-      "https://maps.vietmap.vn/api/maps/raster/styles.json?apikey=YOUR_API_KEY_HERE");
     return VietmapGL(
-        styleString:
-            'https://maps.vietmap.vn/api/maps/light/styles.json?apikey=8e17c07d6fd7dacdb1e2e442ba74b4edbf874b863f3ac04d',
-        initialCameraPosition:
-            CameraPosition(target: LatLng(10.762317, 106.654551)),
-        onMapCreated: (VietmapController controller) {
-          // setState(() {
-          //   widget.mapController = controller;
-          // });
-        });
+      styleString:
+          'https://maps.vietmap.vn/api/maps/light/styles.json?apikey=8e17c07d6fd7dacdb1e2e442ba74b4edbf874b863f3ac04d',
+      initialCameraPosition: CameraPosition(
+        target: _originLatLng,
+        zoom: 14.0,
+      ),
+      onMapCreated: (VietmapController controller) {
+        _mapController = controller;
+        _addMarkersAndFitBounds();
+      },
+    );
+  }
+
+  void _addMarkersAndFitBounds() async {
+    if (_mapController == null) return;
+
+    // Thêm marker cho điểm đi (màu xanh lá)
+    await _mapController!.addSymbol(
+      SymbolOptions(
+        geometry: _originLatLng,
+        iconImage: "marker-15", // Sử dụng icon có sẵn
+        iconSize: 2.0,
+        textField: "Điểm đi",
+        textOffset: const Offset(0, 2),
+        textColor: Colors.green,
+      ),
+    );
+
+    // Thêm marker cho điểm đến (màu đỏ)
+    await _mapController!.addSymbol(
+      SymbolOptions(
+        geometry: _destinationLatLng,
+        iconImage: "marker-15", // Sử dụng icon có sẵn
+        iconSize: 2.0,
+        textField: "Điểm đến",
+        textOffset: const Offset(0, 2),
+        textColor: Colors.red,
+      ),
+    );
+
+    // Tùy chọn: Thêm circle markers tùy chỉnh
+    await _mapController!.addCircle(
+      CircleOptions(
+        geometry: _originLatLng,
+        circleRadius: 8.0,
+        circleColor: Colors.green,
+        circleStrokeColor: Colors.white,
+        circleStrokeWidth: 2.0,
+      ),
+    );
+
+    await _mapController!.addCircle(
+      CircleOptions(
+        geometry: _destinationLatLng,
+        circleRadius: 8.0,
+        circleColor: Colors.red,
+        circleStrokeColor: Colors.white,
+        circleStrokeWidth: 2.0,
+      ),
+    );
+
+    // Điều chỉnh camera để hiển thị cả 2 điểm
+    _fitCameraToBounds();
+  }
+
+  void _fitCameraToBounds() {
+    if (_mapController == null) return;
+
+    // Tính toán bounds để bao gồm cả 2 điểm
+    double minLat = _originLatLng.latitude < _destinationLatLng.latitude
+        ? _originLatLng.latitude
+        : _destinationLatLng.latitude;
+    double maxLat = _originLatLng.latitude > _destinationLatLng.latitude
+        ? _originLatLng.latitude
+        : _destinationLatLng.latitude;
+    double minLng = _originLatLng.longitude < _destinationLatLng.longitude
+        ? _originLatLng.longitude
+        : _destinationLatLng.longitude;
+    double maxLng = _originLatLng.longitude > _destinationLatLng.longitude
+        ? _originLatLng.longitude
+        : _destinationLatLng.longitude;
+
+    // Thêm padding
+    double latPadding = (maxLat - minLat) * 0.2;
+    double lngPadding = (maxLng - minLng) * 0.2;
+
+
   }
 
   Widget _buildBottomSection() {

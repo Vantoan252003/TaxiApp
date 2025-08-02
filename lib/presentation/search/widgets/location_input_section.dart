@@ -69,6 +69,7 @@ class LocationInputSection extends StatelessWidget {
                 ],
               ),
             ),
+            const SizedBox(width: 10),
             // Column 2: Swap button (centered vertically)
             SizedBox(
               width: 35,
