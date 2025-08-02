@@ -4,7 +4,7 @@ import '../../../core/services/location_cache_service.dart';
 import '../../../core/providers/place_provider.dart';
 import '../../../data/models/place_model.dart';
 import '../widgets/index.dart';
-import '../../booking/page/ride_screen.dart';
+import '../../booking/page/booking_screen.dart';
 
 class DestinationSelectionScreen extends StatefulWidget {
   const DestinationSelectionScreen({super.key});

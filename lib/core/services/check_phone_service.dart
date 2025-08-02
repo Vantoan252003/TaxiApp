@@ -9,7 +9,7 @@ class CheckPhoneService {
             .replaceFirst('{phoneNumber}', phoneNumber),
       );
       if (response['data'] == true) {
-        return true; // Phone number exists
+        return true;
       }
       return false;
     } catch (e) {

@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../../../core/constants/app_theme.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/validators/form_validators.dart';
-import '../../../core/providers/auth_provider.dart';
 import '../../../core/services/registration_service.dart';
 import '../../../general_lib/widgets/forms/custom_text_field.dart';
 import '../../../general_lib/widgets/forms/custom_button.dart';
 import 'sign_in_screen.dart';
-import '../../home/screen/home_screen.dart';
 
 class SignUpScreen extends StatefulWidget {
   final String? phoneNumber;
