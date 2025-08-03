@@ -445,6 +445,7 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
         firstName: _firstNameController.text.trim(),
         lastName: _lastNameController.text.trim(),
         dateOfBirth: formattedDate,
+        email: _emailController.text.trim(),
       );
 
       if (success && mounted) {

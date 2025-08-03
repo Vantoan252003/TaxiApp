@@ -146,17 +146,22 @@ class ChangePasswordRequest {
 }
 
 class UpdatePersonalInfoRequest {
+  final String email;
   final String firstName;
   final String lastName;
   final String dateOfBirth;
 
+
   const UpdatePersonalInfoRequest({
+    required this.email,
     required this.firstName,
     required this.lastName,
     required this.dateOfBirth,
+
   });
 
   Map<String, dynamic> toJson() => {
+        'email': email,
         'firstName': firstName,
         'lastName': lastName,
         'dateOfBirth': dateOfBirth,

@@ -30,4 +30,5 @@ class ApiEndpoints {
   //booking endpoints
   static const String place = '/location/place';
   static const String route = '/location/route';
+  static const String estimate = '/fare/estimate';
 }

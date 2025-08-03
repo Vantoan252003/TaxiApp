@@ -307,6 +307,7 @@ class AuthProvider extends ChangeNotifier {
     required String firstName,
     required String lastName,
     required String dateOfBirth,
+    required String email,
   }) async {
     try {
       _setState(AuthState.loading);
@@ -323,9 +324,11 @@ class AuthProvider extends ChangeNotifier {
       }
 
       final request = UpdatePersonalInfoRequest(
+        email: email,
         firstName: firstName,
         lastName: lastName,
         dateOfBirth: dateOfBirth,
+   
       );
 
       final response = await _updatePersonalInfoUseCase.execute(
@@ -338,6 +341,7 @@ class AuthProvider extends ChangeNotifier {
         // Cập nhật thông tin người dùng trong local storage
         if (_currentUser != null) {
           final updatedUser = _currentUser!.copyWith(
+            email: email,
             firstName: firstName,
             lastName: lastName,
             dateOfBirth: dateOfBirth,

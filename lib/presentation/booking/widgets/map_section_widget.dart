@@ -100,10 +100,31 @@ class _MapSectionWidgetState extends State<MapSectionWidget> {
         if (_routePoints.isEmpty) {
           _routePoints = [widget.originLatLng, widget.destinationLatLng];
         }
+
+        // ✅ FIX: Đảm bảo điểm cuối là đích đến chính xác
+        if (_routePoints.isNotEmpty) {
+          // Kiểm tra xem điểm cuối có khác với điểm đích không
+          final lastPoint = _routePoints.last;
+          final destination = widget.destinationLatLng;
+
+          // Nếu khoảng cách > 10m thì thay thế điểm cuối
+          final distance = _calculateDistance(lastPoint, destination);
+          if (distance > 0.00009) {
+            // ~10 meters in degrees
+            _routePoints[_routePoints.length - 1] = destination;
+          }
+        }
+
         _fitCameraToPolyline(_routePoints);
         _animatePolyline();
       },
     );
+  }
+
+  // ✅ FIX: Tính khoảng cách giữa 2 điểm
+  double _calculateDistance(LatLng point1, LatLng point2) {
+    return sqrt(pow(point1.latitude - point2.latitude, 2) +
+        pow(point1.longitude - point2.longitude, 2));
   }
 
   void _animatePolyline() {
@@ -113,7 +134,10 @@ class _MapSectionWidgetState extends State<MapSectionWidget> {
 
     _polylineTimer =
         Timer.periodic(const Duration(milliseconds: 30), (timer) async {
+      // ✅ FIX: Đảm bảo vẽ đến điểm cuối cùng
       if (_polylineIndex >= _routePoints.length) {
+        // Vẽ toàn bộ route một lần cuối để đảm bảo
+        await _drawPolyline(_routePoints);
         timer.cancel();
         return;
       }
@@ -121,7 +145,13 @@ class _MapSectionWidgetState extends State<MapSectionWidget> {
       final subList = _routePoints.sublist(0, _polylineIndex);
       await _drawPolyline(subList);
 
-      _polylineIndex += 10;
+      // ✅ FIX: Tăng từng điểm một để chính xác hơn
+      _polylineIndex += 5; // Giảm từ 10 xuống 5 để mượt hơn
+
+      // ✅ FIX: Nếu gần cuối thì nhảy đến cuối
+      if (_polylineIndex >= _routePoints.length - 5) {
+        _polylineIndex = _routePoints.length;
+      }
     });
   }
 
