@@ -54,3 +54,25 @@ class LoginUseCase {
     return await _repository.login(request);
   }
 }
+
+class ChangePasswordUseCase {
+  final AuthRepository _authRepository;
+
+  ChangePasswordUseCase(this._authRepository);
+
+  Future<AuthResponse> execute(
+      ChangePasswordRequest request, String accessToken) {
+    return _authRepository.changePassword(request, accessToken);
+  }
+}
+
+class UpdatePersonalInfoUseCase {
+  final AuthRepository _authRepository;
+
+  UpdatePersonalInfoUseCase(this._authRepository);
+
+  Future<AuthResponse> execute(
+      UpdatePersonalInfoRequest request, String userId, String accessToken) {
+    return _authRepository.updatePersonalInfo(request, userId, accessToken);
+  }
+}

@@ -1,4 +1,8 @@
+import 'dart:async';
+import 'dart:math';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:vietmap_flutter_gl/vietmap_flutter_gl.dart';
 import 'package:vietmap_flutter_plugin/vietmap_flutter_plugin.dart';
 
@@ -7,10 +11,10 @@ class MapSectionWidget extends StatefulWidget {
   final LatLng destinationLatLng;
 
   const MapSectionWidget({
-    super.key,
+    Key? key,
     required this.originLatLng,
     required this.destinationLatLng,
-  });
+  }) : super(key: key);
 
   @override
   State<MapSectionWidget> createState() => _MapSectionWidgetState();
@@ -18,25 +22,24 @@ class MapSectionWidget extends StatefulWidget {
 
 class _MapSectionWidgetState extends State<MapSectionWidget> {
   VietmapController? _mapController;
-  Line? _routeLine; // Biến để lưu đường polyline
+  Line? _routeLine;
+  List<LatLng> _routePoints = [];
+
+  Symbol? _originSymbol;
+  Symbol? _destinationSymbol;
+  Timer? _polylineTimer;
+  int _polylineIndex = 0;
 
   @override
   void initState() {
     super.initState();
-    // Initialize Vietmap plugin
-    Vietmap.getInstance('8e17c07d6fd7dacdb1e2e442ba74b4edbf874b863f3ac04d');
-
-    // Debug: Check coordinates
-    print('DEBUG: MapSectionWidget initialized');
-    print(
-        'DEBUG: Origin coordinates: ${widget.originLatLng.latitude}, ${widget.originLatLng.longitude}');
-    print(
-        'DEBUG: Destination coordinates: ${widget.destinationLatLng.latitude}, ${widget.destinationLatLng.longitude}');
+    Vietmap.getInstance(
+      '8e17c07d6fd7dacdb1e2e442ba74b4edbf874b863f3ac04d',
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    print('DEBUG: Building MapSectionWidget');
     return VietmapGL(
       styleString:
           'https://maps.vietmap.vn/api/maps/light/styles.json?apikey=8e17c07d6fd7dacdb1e2e442ba74b4edbf874b863f3ac04d',
@@ -44,250 +47,135 @@ class _MapSectionWidgetState extends State<MapSectionWidget> {
         target: widget.originLatLng,
         zoom: 14.0,
       ),
-      onMapCreated: (VietmapController controller) {
-        print('DEBUG: Map created');
+      onMapCreated: (controller) async {
         _mapController = controller;
-        _addMarkersAndRoute();
+      },
+      onStyleLoadedCallback: () async {
+        await _addMarkersAndRoute();
       },
     );
   }
 
-  void _addMarkersAndRoute() async {
-    print('DEBUG: Adding markers and route');
-    if (_mapController == null) {
-      print('DEBUG: Map controller is null');
-      return;
-    }
-
-    try {
-      // Thêm marker cho điểm đi (Symbols)
-      print(
-          'DEBUG: Adding origin marker at: ${widget.originLatLng.latitude}, ${widget.originLatLng.longitude}');
-      await _mapController!.addSymbol(
-        SymbolOptions(
-          geometry: widget.originLatLng,
-          iconImage: "marker-15",
-          iconSize: 2.0,
-          textField: "Điểm đi",
-          textOffset: const Offset(0, 2),
-          textColor: Colors.blue, // Màu xanh dương
-        ),
-      );
-      print('DEBUG: Origin marker added successfully');
-
-      // Thêm marker cho điểm đến (Symbols)
-      print(
-          'DEBUG: Adding destination marker at: ${widget.destinationLatLng.latitude}, ${widget.destinationLatLng.longitude}');
-      await _mapController!.addSymbol(
-        SymbolOptions(
-          geometry: widget.destinationLatLng,
-          iconImage: "marker-15",
-          iconSize: 2.0,
-          textField: "Điểm đến",
-          textOffset: const Offset(0, 2),
-          textColor: Colors.orange, // Màu cam
-        ),
-      );
-      print('DEBUG: Destination marker added successfully');
-
-      // Thêm circle markers cho điểm đi
-      print('DEBUG: Adding origin circle marker');
-      await _mapController!.addCircle(
-        CircleOptions(
-          geometry: widget.originLatLng,
-          circleRadius: 8.0,
-          circleColor: Colors.blue, // Màu xanh dương
-          circleStrokeColor: Colors.white, // Màu trắng
-          circleStrokeWidth: 2.0,
-        ),
-      );
-      print('DEBUG: Origin circle marker added successfully');
-
-      // Thêm circle markers cho điểm đến
-      print('DEBUG: Adding destination circle marker');
-      await _mapController!.addCircle(
-        CircleOptions(
-          geometry: widget.destinationLatLng,
-          circleRadius: 8.0,
-          circleColor: Colors.red, // Màu cam
-          circleStrokeColor: Colors.white, // Màu trắng
-          circleStrokeWidth: 2.0,
-        ),
-      );
-      print('DEBUG: Destination circle marker added successfully');
-
-      print('DEBUG: All markers added, now getting route');
-      // Lấy đường đi và vẽ polyline
-      await _getAndDrawRoute();
-
-      // Fit camera để hiển thị cả 2 điểm
-      print('DEBUG: Fitting camera to bounds');
-      _fitCameraToBounds();
-    } catch (e) {
-      print('DEBUG: Error adding markers: $e');
-      print('DEBUG: Error type: ${e.runtimeType}');
-    }
+  Future<Uint8List> _loadAssetImage(String path) async {
+    final ByteData bytes = await rootBundle.load(path);
+    return bytes.buffer.asUint8List();
   }
 
-  Future<void> _getAndDrawRoute() async {
-    print('DEBUG: Starting to get route');
-    print(
-        'DEBUG: Origin: ${widget.originLatLng.latitude}, ${widget.originLatLng.longitude}');
-    print(
-        'DEBUG: Destination: ${widget.destinationLatLng.latitude}, ${widget.destinationLatLng.longitude}');
-
-    try {
-      // Gọi API routing để lấy đường đi
-      print('DEBUG: Calling Vietmap.routing API...');
-      final routingResult = await Vietmap.routing(
-        VietMapRoutingParams(
-          points: [
-            widget.originLatLng,
-            widget.destinationLatLng,
-          ],
-        ),
-      );
-
-      print('DEBUG: Routing API called, processing result...');
-      // Xử lý kết quả routing
-      routingResult.fold(
-        (Failure failure) {
-          print('DEBUG: Routing failed: ${failure.toString()}');
-          // Fallback: vẽ đường thẳng giữa 2 điểm
-          _drawStraightLine();
-        },
-        (routes) {
-          print('DEBUG: Routing successful, routes: $routes');
-          // Vẽ đường đi nếu có kết quả
-          if (routes != null) {
-            _drawRouteFromResponse(routes);
-          } else {
-            print('DEBUG: Routes is null, drawing straight line');
-            _drawStraightLine();
-          }
-        },
-      );
-    } catch (e) {
-      print('DEBUG: Error getting route: $e');
-      print('DEBUG: Error type: ${e.runtimeType}');
-      // Fallback: vẽ đường thẳng giữa 2 điểm
-      _drawStraightLine();
-    }
-  }
-
-  void _drawRouteFromResponse(dynamic routes) async {
+  Future<void> _addMarkersAndRoute() async {
     if (_mapController == null) return;
 
-    try {
-      print('DEBUG: Drawing route from response: $routes');
-      print('DEBUG: Routes type: ${routes.runtimeType}');
+    await _mapController!.addImage(
+        'originIcon', await _loadAssetImage('assets/images/origin.png'));
+    await _mapController!.addImage('destinationIcon',
+        await _loadAssetImage('assets/images/destination.png'));
 
-      // Xóa polyline cũ nếu có
-      if (_routeLine != null) {
-        await _mapController!.removePolyline(_routeLine!);
-      }
+    _originSymbol = await _mapController!.addSymbol(SymbolOptions(
+      geometry: widget.originLatLng,
+      iconImage: 'originIcon',
+      iconSize: 0.8,
+      iconAnchor: "bottom",
+    ));
+    _destinationSymbol = await _mapController!.addSymbol(SymbolOptions(
+      geometry: widget.destinationLatLng,
+      iconImage: 'destinationIcon',
+      iconSize: 0.8,
+      iconAnchor: "bottom",
+    ));
 
-      // Tạo danh sách các điểm từ route geometry
-      List<LatLng> routePoints = [];
+    final routingResult = await Vietmap.routing(
+      VietMapRoutingParams(
+        points: [widget.originLatLng, widget.destinationLatLng],
+        vehicle: VehicleType.bike,
+      ),
+    );
 
-      // Parse route geometry từ response
-      if (routes is Map && routes['geometry'] != null) {
-        print('DEBUG: Found geometry in routes: ${routes['geometry']}');
-        print('DEBUG: Geometry type: ${routes['geometry'].runtimeType}');
-
-        // Nếu geometry là encoded polyline, decode nó
-        if (routes['geometry'] is String) {
-          print('DEBUG: Geometry is string, decoding polyline...');
-          routePoints = _decodePolyline(routes['geometry'] as String);
-          print('DEBUG: Decoded ${routePoints.length} points from polyline');
-        } else if (routes['geometry'] is List) {
-          print('DEBUG: Geometry is list, processing coordinates...');
-          // Nếu geometry là array of coordinates
-          final coords = routes['geometry'] as List;
-          for (var coord in coords) {
-            if (coord is List && coord.length >= 2) {
-              routePoints.add(LatLng(coord[1].toDouble(), coord[0].toDouble()));
-            }
-          }
-          print(
-              'DEBUG: Processed ${routePoints.length} points from coordinates list');
+    routingResult.fold(
+      (failure) async {
+        _routePoints = [widget.originLatLng, widget.destinationLatLng];
+        _fitCameraToPolyline(_routePoints);
+        _animatePolyline();
+      },
+      (routingModel) async {
+        _routePoints = _extractRoutePointsFromModel(routingModel);
+        if (_routePoints.isEmpty) {
+          _routePoints = [widget.originLatLng, widget.destinationLatLng];
         }
-      } else if (routes is List && routes.isNotEmpty) {
-        print('DEBUG: Routes is a list, processing first route...');
-        final route = routes.first;
-        print('DEBUG: First route: $route');
-        print('DEBUG: First route type: ${route.runtimeType}');
+        _fitCameraToPolyline(_routePoints);
+        _animatePolyline();
+      },
+    );
+  }
 
-        if (route is Map && route['geometry'] != null) {
-          print('DEBUG: Found geometry in first route: ${route['geometry']}');
-          if (route['geometry'] is String) {
-            routePoints = _decodePolyline(route['geometry'] as String);
-            print(
-                'DEBUG: Decoded ${routePoints.length} points from first route polyline');
-          } else if (route['geometry'] is List) {
-            final coords = route['geometry'] as List;
-            for (var coord in coords) {
-              if (coord is List && coord.length >= 2) {
-                routePoints
-                    .add(LatLng(coord[1].toDouble(), coord[0].toDouble()));
-              }
-            }
-            print(
-                'DEBUG: Processed ${routePoints.length} points from first route coordinates');
-          }
-        }
-      } else {
-        print('DEBUG: No valid geometry found in routes');
-      }
+  void _animatePolyline() {
+    _polylineIndex = 1;
+    _routeLine = null;
+    _polylineTimer?.cancel();
 
-      // Nếu vẫn không có điểm, vẽ đường thẳng
-      if (routePoints.isEmpty) {
-        print('DEBUG: No route points found, drawing straight line');
-        _drawStraightLine();
+    _polylineTimer =
+        Timer.periodic(const Duration(milliseconds: 30), (timer) async {
+      if (_polylineIndex >= _routePoints.length) {
+        timer.cancel();
         return;
       }
 
-      print('DEBUG: Drawing polyline with ${routePoints.length} points');
-      // Vẽ polyline
-      _routeLine = await _mapController!.addPolyline(
-        PolylineOptions(
-          geometry: routePoints,
-          polylineColor: Colors.blue,
-          polylineWidth: 4.0,
-        ),
-      );
+      final subList = _routePoints.sublist(0, _polylineIndex);
+      await _drawPolyline(subList);
 
-      print(
-          'DEBUG: Route drawn successfully with ${routePoints.length} points');
-    } catch (e) {
-      print('DEBUG: Error drawing route: $e');
-      print('DEBUG: Error type: ${e.runtimeType}');
-      _drawStraightLine();
-    }
+      _polylineIndex += 10;
+    });
   }
 
-  void _drawStraightLine() async {
+  Future<void> _drawPolyline(List<LatLng> points) async {
     if (_mapController == null) return;
-
-    try {
-      // Xóa polyline cũ nếu có
-      if (_routeLine != null) {
-        await _mapController!.removePolyline(_routeLine!);
-      }
-
-      // Vẽ đường thẳng giữa 2 điểm
-      _routeLine = await _mapController!.addPolyline(
-        PolylineOptions(
-          geometry: [widget.originLatLng, widget.destinationLatLng],
-          polylineColor: Colors.blue,
-          polylineWidth: 4.0,
-        ),
-      );
-
-      print('Straight line drawn between points');
-    } catch (e) {
-      print('Error drawing straight line: $e');
+    if (_routeLine != null) {
+      await _mapController!.removePolyline(_routeLine!);
     }
+    _routeLine = await _mapController!.addPolyline(
+      PolylineOptions(
+        geometry: points,
+        polylineColor: Colors.blue,
+        polylineWidth: 6.0,
+      ),
+    );
+  }
+
+  void _fitCameraToPolyline(List<LatLng> points) {
+    if (_mapController == null || points.isEmpty) return;
+
+    double minLat = points.map((p) => p.latitude).reduce(min);
+    double maxLat = points.map((p) => p.latitude).reduce(max);
+    double minLng = points.map((p) => p.longitude).reduce(min);
+    double maxLng = points.map((p) => p.longitude).reduce(max);
+
+    final bounds = LatLngBounds(
+      southwest: LatLng(minLat, minLng),
+      northeast: LatLng(maxLat, maxLng),
+    );
+
+    _mapController!.animateCamera(CameraUpdate.newLatLngBounds(bounds,
+        left: 50, top: 150, right: 50, bottom: 300));
+  }
+
+  List<LatLng> _extractRoutePointsFromModel(dynamic model) {
+    final List<LatLng> pts = [];
+    final data = model.toJson();
+
+    if (data['paths'] != null &&
+        data['paths'] is List &&
+        data['paths'].isNotEmpty) {
+      final firstPath = data['paths'][0];
+      if (firstPath['points_encoded'] == true &&
+          firstPath['points'] is String) {
+        pts.addAll(_decodePolyline(firstPath['points']));
+      } else if (firstPath['points'] is List) {
+        for (var coord in firstPath['points']) {
+          if (coord is List && coord.length >= 2) {
+            pts.add(LatLng(coord[1].toDouble(), coord[0].toDouble()));
+          }
+        }
+      }
+    }
+    return pts;
   }
 
   List<LatLng> _decodePolyline(String encoded) {
@@ -315,58 +203,14 @@ class _MapSectionWidgetState extends State<MapSectionWidget> {
       int dlng = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
       lng += dlng;
 
-      final p = LatLng((lat / 1E5).toDouble(), (lng / 1E5).toDouble());
-      poly.add(p);
+      poly.add(LatLng(lat / 1E5, lng / 1E5));
     }
     return poly;
   }
 
-  void _fitCameraToBounds() {
-    if (_mapController == null) return;
-
-    double minLat =
-        widget.originLatLng.latitude < widget.destinationLatLng.latitude
-            ? widget.originLatLng.latitude
-            : widget.destinationLatLng.latitude;
-    double maxLat =
-        widget.originLatLng.latitude > widget.destinationLatLng.latitude
-            ? widget.originLatLng.latitude
-            : widget.destinationLatLng.latitude;
-    double minLng =
-        widget.originLatLng.longitude < widget.destinationLatLng.longitude
-            ? widget.originLatLng.longitude
-            : widget.destinationLatLng.longitude;
-    double maxLng =
-        widget.originLatLng.longitude > widget.destinationLatLng.longitude
-            ? widget.originLatLng.longitude
-            : widget.destinationLatLng.longitude;
-
-    // Tính toán điểm trung tâm
-    double centerLat = (minLat + maxLat) / 2;
-    double centerLng = (minLng + maxLng) / 2;
-
-    // Tính toán zoom level dựa trên khoảng cách
-    double latDiff = maxLat - minLat;
-    double lngDiff = maxLng - minLng;
-    double maxDiff = latDiff > lngDiff ? latDiff : lngDiff;
-
-    // Cải thiện công thức tính zoom để hiển thị tốt hơn
-    double zoom = 15.0 - (maxDiff * 50); // Điều chỉnh hệ số từ 100 xuống 50
-    if (zoom < 8.0) zoom = 8.0; // Zoom tối thiểu
-    if (zoom > 16.0) zoom = 16.0; // Zoom tối đa
-
-    // Animate camera để hiển thị đẹp hơn
-    _mapController!.animateCamera(
-      CameraUpdate.newLatLngZoom(
-        LatLng(centerLat, centerLng),
-        zoom,
-      ),
-    );
-  }
-
   @override
   void dispose() {
-    // Dọn dẹp resources khi widget bị dispose
+    _polylineTimer?.cancel();
     if (_routeLine != null && _mapController != null) {
       _mapController!.removePolyline(_routeLine!);
     }

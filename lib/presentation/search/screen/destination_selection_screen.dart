@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vietmap_flutter_gl/vietmap_flutter_gl.dart';
 import '../../../core/services/location_cache_service.dart';
+import '../../../core/services/location_service.dart';
 import '../../../core/services/service_locator.dart';
 import '../../../core/providers/place_provider.dart';
 import '../../../data/models/place_model.dart';
@@ -28,6 +29,8 @@ class _DestinationSelectionScreenState
   bool _isGettingCurrentLocation = false;
   String _lastFocusedField = 'origin';
   String? _originRefId; // Store origin refId when user selects origin place
+  String _initialOriginText =
+      ''; // Store initial origin text to check if it was modified
 
   @override
   void initState() {
@@ -42,8 +45,10 @@ class _DestinationSelectionScreenState
 
     try {
       final cachedAddress = await LocationCacheService.getCurrentAddress();
+      final initialText = cachedAddress ?? "Vị trí hiện tại";
       setState(() {
-        _originController.text = cachedAddress ?? "Vị trí hiện tại";
+        _originController.text = initialText;
+        _initialOriginText = initialText; // Store initial text
       });
     } finally {
       setState(() {
@@ -60,8 +65,10 @@ class _DestinationSelectionScreenState
     try {
       final address =
           await LocationCacheService.updateAndCacheCurrentLocation();
+      final newText = address ?? "Vị trí hiện tại";
       setState(() {
-        _originController.text = address ?? "Vị trí hiện tại";
+        _originController.text = newText;
+        _initialOriginText = newText; // Update initial text when refreshing
       });
     } finally {
       setState(() {
@@ -125,11 +132,6 @@ class _DestinationSelectionScreenState
         _originController.text.trim().isNotEmpty &&
         _destinationController.text.isNotEmpty &&
         _destinationController.text.trim().isNotEmpty) {
-      print('DEBUG: Starting navigation with place details');
-      print('DEBUG: Destination RefId: $destinationRefId');
-      print('DEBUG: Origin text: ${_originController.text.trim()}');
-      print('DEBUG: Destination text: ${_destinationController.text.trim()}');
-
       try {
         // Show loading indicator
         showDialog(
@@ -142,12 +144,11 @@ class _DestinationSelectionScreenState
           },
         );
 
-        // Use stored origin refId or try to find it from search results
+        // Get origin refId from stored value or search results
         String? originRefId = _originRefId;
         if (originRefId == null && context.mounted) {
           final placeProvider =
               Provider.of<PlaceProvider>(context, listen: false);
-          // Try to find the origin place in recent search results
           for (final place in placeProvider.searchResults) {
             if (place.name == _originController.text.trim()) {
               originRefId = place.refId;
@@ -156,17 +157,13 @@ class _DestinationSelectionScreenState
           }
         }
 
-        print('DEBUG: Origin RefId found: $originRefId');
-
-        // Call place API for both origin and destination simultaneously
-        print('DEBUG: Calling place API for both points...');
         final getPlaceDetailUseCase =
             ServiceLocator.instance.get<GetPlaceDetailUseCase>();
 
         LatLng? originLatLng;
         LatLng? destinationLatLng;
 
-        // Call API for destination (always available)
+        // Get destination coordinates
         final destinationResponse =
             await getPlaceDetailUseCase.execute(destinationRefId);
         if (destinationResponse.success &&
@@ -174,12 +171,24 @@ class _DestinationSelectionScreenState
           final destinationDetail = destinationResponse.data.first;
           destinationLatLng =
               LatLng(destinationDetail.lat, destinationDetail.lng);
-          print(
-              'DEBUG: Destination coordinates: ${destinationDetail.lat}, ${destinationDetail.lng}');
         }
 
-        // Call API for origin if refId is available
-        if (originRefId != null && originRefId.isNotEmpty) {
+        // Get origin coordinates based on whether user modified the input
+        if (_originController.text.trim() == _initialOriginText.trim()) {
+          // User didn't modify origin - use current GPS location
+          try {
+            final currentPosition = await LocationService.getCurrentPosition();
+            if (currentPosition != null) {
+              originLatLng =
+                  LatLng(currentPosition.latitude, currentPosition.longitude);
+            } else {
+              originLatLng = const LatLng(10.762317, 106.654551);
+            }
+          } catch (e) {
+            originLatLng = const LatLng(10.762317, 106.654551);
+          }
+        } else if (originRefId != null && originRefId.isNotEmpty) {
+          // User selected a place - get coordinates from API
           try {
             final originResponse =
                 await getPlaceDetailUseCase.execute(originRefId);
@@ -250,7 +259,6 @@ class _DestinationSelectionScreenState
           _navigateToRideScreen();
         }
       } catch (e) {
-        print('DEBUG: Error in place API calls: $e');
         // Hide loading indicator
         if (context.mounted) {
           Navigator.pop(context);
@@ -265,7 +273,6 @@ class _DestinationSelectionScreenState
             ),
           );
         }
-        // Fallback to regular navigation
         _navigateToRideScreen();
       }
     }

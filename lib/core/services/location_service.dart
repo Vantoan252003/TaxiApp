@@ -3,6 +3,7 @@ import '../api/api_endpoints.dart';
 import '../api/api_client.dart';
 import '../../data/models/place_model.dart';
 import 'package:geolocator/geolocator.dart';
+
 class LocationService {
   static const String _baseUrl = ApiEndpoints.baseUrl;
   static const String _accessTokenKey = 'accessToken';
@@ -106,27 +107,20 @@ class LocationService {
 
   // Get place details by refId
   static Future<PlaceDetailResponse> getPlaceDetail(String refId) async {
-   
-      final accessToken = await _getAccessToken();
-      if (accessToken == null || accessToken.isEmpty) {
-        throw Exception('Access token is null or empty');
-      }
-
-
-
-      final endpoint =
-          '${ApiEndpoints.place}?refid=${Uri.encodeComponent(refId)}';
-      final headers = {
-        'Authorization': 'Bearer $accessToken',
-        'Content-Type': 'application/json',
-      };
-
-
-
-      final response = await ApiClient.get(endpoint, headers: headers);
-
-  
-
-      return PlaceDetailResponse.fromJson(response);
+    final accessToken = await _getAccessToken();
+    if (accessToken == null || accessToken.isEmpty) {
+      throw Exception('Access token is null or empty');
     }
+
+    final endpoint =
+        '${ApiEndpoints.place}?refid=${Uri.encodeComponent(refId)}';
+    final headers = {
+      'Authorization': 'Bearer $accessToken',
+      'Content-Type': 'application/json',
+    };
+
+    final response = await ApiClient.get(endpoint, headers: headers);
+
+    return PlaceDetailResponse.fromJson(response);
+  }
 }

@@ -29,11 +29,7 @@ class ServiceFactory {
       title: 'Xe điện',
       type: 'electric',
     ),
-    ServiceConfig(
-      icon: Icons.delivery_dining,
-      title: 'Giao hàng',
-      type: 'delivery',
-    ),
+
   ];
 
   static List<ServiceConfig> getServices() => _services;

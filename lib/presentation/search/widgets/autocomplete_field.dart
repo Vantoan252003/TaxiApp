@@ -35,6 +35,7 @@ class AutocompleteField extends StatefulWidget {
 class _AutocompleteFieldState extends State<AutocompleteField> {
   final FocusNode _focusNode = FocusNode();
   bool _showSuggestions = false;
+  bool _showClearIcon = false;
   Timer? _debounceTimer;
 
   @override
@@ -42,6 +43,7 @@ class _AutocompleteFieldState extends State<AutocompleteField> {
     super.initState();
     _focusNode.addListener(_onFocusChange);
     widget.controller.addListener(_onTextChanged);
+    _showClearIcon = widget.controller.text.isNotEmpty;
   }
 
   @override
@@ -60,34 +62,50 @@ class _AutocompleteFieldState extends State<AutocompleteField> {
   }
 
   void _onTextChanged() {
-    if (_focusNode.hasFocus) {
-      // Cancel previous timer
-      _debounceTimer?.cancel();
+    setState(() {
+      _showClearIcon = widget.controller.text.isNotEmpty;
+    });
 
-      // Set new timer for debouncing
+    if (_focusNode.hasFocus) {
+      _debounceTimer?.cancel();
       _debounceTimer = Timer(const Duration(milliseconds: 500), () {
         if (mounted && _focusNode.hasFocus) {
-            final provider = context.read<PlaceProvider>();
-            provider.searchPlaces(widget.controller.text);
-      
+          final provider = context.read<PlaceProvider>();
+          provider.searchPlaces(widget.controller.text);
         }
       });
     }
+  }
+
+  void _clearText() {
+    widget.controller.clear();
+    setState(() {
+      _showClearIcon = false;
+    });
+    _onTextChanged();
   }
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // Input field
         Container(
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
-              color: widget.isActive ? Colors.blue : Colors.grey.shade300,
-              width: widget.isActive ? 2 : 1,
+              color: _focusNode.hasFocus ? Colors.blue : Colors.grey.shade300,
+              width: _focusNode.hasFocus ? 2 : 1,
             ),
+            boxShadow: _focusNode.hasFocus
+                ? [
+                    BoxShadow(
+                      color: Colors.blue.withOpacity(0.3),
+                      blurRadius: 8,
+                      spreadRadius: 1,
+                    ),
+                  ]
+                : [],
           ),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -103,24 +121,28 @@ class _AutocompleteFieldState extends State<AutocompleteField> {
                       controller: widget.controller,
                       enabled: !widget.isLoading,
                       decoration: InputDecoration(
-                        hintText:
-                            widget.isLoading ? "Đang tải..." : widget.hintText,
+                        hintText: widget.isLoading
+                            ? "Đang lấy địa chỉ..."
+                            : widget.hintText,
                         border: InputBorder.none,
                         hintStyle: TextStyle(
                           color: Colors.grey.shade500,
                           fontSize: 16,
                         ),
-                        suffixIcon: widget.isLoading
-                            ? const SizedBox(
-                                width: 16,
-                                height: 16,
-                                child: Padding(
-                                  padding: EdgeInsets.all(8.0),
-                                  child:
-                                      CircularProgressIndicator(strokeWidth: 2),
-                                ),
-                              )
-                            : null,
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 12, // Dịch văn bản xuống một chút
+                          horizontal: 0,
+                        ),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            Icons.clear,
+                            color: _showClearIcon
+                                ? Colors.grey.shade600
+                                : Colors.transparent,
+                            size: 20,
+                          ),
+                          onPressed: _showClearIcon ? _clearText : null,
+                        ),
                       ),
                       style: const TextStyle(fontSize: 16),
                     ),

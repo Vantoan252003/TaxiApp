@@ -65,17 +65,33 @@ class _RideOptionsPanelState extends State<RideOptionsPanel> {
       'passengers': 4,
       'color': Colors.grey,
     },
+    {
+      'id': 'Premium',
+      'name': 'Premium Car',
+      'icon': Icons.directions_car,
+      'description': 'Luxury ride experience',
+      'price': 180000.0,
+      'originalPrice': 180000.0,
+      'passengers': 4,
+      'color': Colors.purple,
+    },
   ];
 
   @override
   Widget build(BuildContext context) {
     return Container(
+      // Thu nhỏ container bằng cách thêm margin
+
       decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(20),
-          topRight: Radius.circular(20),
-        ),
+        borderRadius: BorderRadius.all(Radius.circular(20)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 10,
+            offset: Offset(0, -2),
+          ),
+        ],
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -91,16 +107,10 @@ class _RideOptionsPanelState extends State<RideOptionsPanel> {
             ),
           ),
 
-          // Ride options - scrollable
+          // Ride options - scrollable với chiều cao cố định
           Container(
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  _buildRideOptions(),
-                 
-                ],
-              ),
-            ),
+            height: 200, // Chiều cao cố định để hiển thị ~3 items
+            child: _buildRideOptions(),
           ),
 
           // Control widgets
@@ -110,7 +120,7 @@ class _RideOptionsPanelState extends State<RideOptionsPanel> {
           _buildBookingButtons(),
 
           // Bottom padding for safe area
-          SizedBox(height: MediaQuery.of(context).padding.bottom),
+          const SizedBox(height: 8),
         ],
       ),
     );
@@ -118,8 +128,7 @@ class _RideOptionsPanelState extends State<RideOptionsPanel> {
 
   Widget _buildRideOptions() {
     return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       itemCount: _vehicleTypes.length,
       itemBuilder: (context, index) {
         final vehicle = _vehicleTypes[index];
@@ -234,12 +243,12 @@ class _RideOptionsPanelState extends State<RideOptionsPanel> {
 
   Widget _buildControlWidgets() {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 18, vertical: 4),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         children: [
-          // Payment method
+          // Payment method - mở rộng hơn
           Expanded(
-  
+            flex: 3, // Tăng flex để rộng hơn
             child: _buildControlWidget(
               icon: Icons.payment,
               title: '$_selectedPaymentMethod*',
@@ -247,8 +256,9 @@ class _RideOptionsPanelState extends State<RideOptionsPanel> {
             ),
           ),
           const SizedBox(width: 12),
-          // Promo
+          // Promo - mở rộng hơn
           Expanded(
+            flex: 3, // Tăng flex để rộng hơn
             child: _buildControlWidget(
               icon: Icons.local_offer,
               title: _hasPromo ? '1 Promo' : 'Add promo',
@@ -269,21 +279,26 @@ class _RideOptionsPanelState extends State<RideOptionsPanel> {
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(6),
+      borderRadius: BorderRadius.circular(8),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        padding: const EdgeInsets.symmetric(
+            horizontal: 12, vertical: 10), // Tăng padding
         decoration: BoxDecoration(
           color: Colors.grey.shade100,
-          borderRadius: BorderRadius.circular(6),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.grey.shade200),
         ),
         child: Row(
           children: [
-            Icon(icon, size: 14),
-            const SizedBox(width: 4),
+            Icon(icon, size: 16), // Tăng size icon
+            const SizedBox(width: 6),
             Expanded(
               child: Text(
                 title,
-                style: const TextStyle(fontSize: 10),
+                style: const TextStyle(
+                  fontSize: 12, // Tăng font size
+                  fontWeight: FontWeight.w500,
+                ),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
@@ -291,12 +306,13 @@ class _RideOptionsPanelState extends State<RideOptionsPanel> {
               Container(
                 width: 6,
                 height: 6,
+                margin: const EdgeInsets.only(right: 4),
                 decoration: const BoxDecoration(
                   color: Colors.green,
                   shape: BoxShape.circle,
                 ),
               ),
-            const Icon(Icons.keyboard_arrow_down, size: 12),
+            const Icon(Icons.keyboard_arrow_down, size: 14),
           ],
         ),
       ),
@@ -310,21 +326,21 @@ class _RideOptionsPanelState extends State<RideOptionsPanel> {
         children: [
           // Book selected vehicle button
           Expanded(
-            flex: 2,
             child: ElevatedButton(
               onPressed: widget.onBookSelected,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.amber,
                 foregroundColor: Colors.black,
-                padding: const EdgeInsets.symmetric(vertical: 12),
+                padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(10),
                 ),
+                elevation: 2,
               ),
               child: Text(
                 'Book ${widget.selectedVehicleType}',
                 style: const TextStyle(
-                  fontSize: 14,
+                  fontSize: 15,
                   fontWeight: FontWeight.bold,
                 ),
               ),

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../core/constants/app_theme.dart';
 import '../../core/providers/auth_provider.dart';
 import '../widgets/security_menu_item.dart';
+import '../../presentation/auth/screen/change_password_screen.dart';
 
 class SecurityScreen extends StatefulWidget {
   const SecurityScreen({super.key});
@@ -175,7 +176,11 @@ class _SecurityScreenState extends State<SecurityScreen> {
                     title: 'Đổi mật khẩu',
                     subtitle: 'Thay đổi mật khẩu tài khoản',
                     onTap: () {
-                      // TODO: Navigate to change password screen
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const ChangePasswordScreen(),
+                        ),
+                      );
                     },
                   ),
                   const Divider(height: 1, indent: 56),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:taxi_app/presentation/search/screen/destination_selection_screen.dart';
 import '../../../core/services/service_config.dart';
 import '../../../core/constants/app_theme.dart';
 
@@ -26,7 +27,12 @@ class HomeServicesGrid extends StatelessWidget {
             itemBuilder: (context, index) {
               final service = services[index];
               return GestureDetector(
-                onTap: () => onServiceTap(service.type),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const DestinationSelectionScreen(),
+                  ),
+                ),
                 child: Container(
                   width: 100,
                   margin: const EdgeInsets.only(right: 12),

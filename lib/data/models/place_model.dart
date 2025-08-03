@@ -53,8 +53,6 @@ class PlaceModel {
         boundaries: boundaries,
       );
     } catch (e) {
-      debugPrint('Error creating PlaceModel from map: $e');
-      debugPrint('Map data: $map');
       rethrow;
     }
   }

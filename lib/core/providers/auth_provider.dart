@@ -22,11 +22,17 @@ class AuthProvider extends ChangeNotifier {
   late final SendOtpUseCase _sendOtpUseCase;
   late final VerifyOtpUseCase _verifyOtpUseCase;
   late final LoginUseCase _loginUseCase;
+  late final ChangePasswordUseCase _changePasswordUseCase;
+  late final UpdatePersonalInfoUseCase _updatePersonalInfoUseCase;
 
   AuthProvider() {
     _sendOtpUseCase = ServiceLocator.instance.get<SendOtpUseCase>();
     _verifyOtpUseCase = ServiceLocator.instance.get<VerifyOtpUseCase>();
     _loginUseCase = ServiceLocator.instance.get<LoginUseCase>();
+    _changePasswordUseCase =
+        ServiceLocator.instance.get<ChangePasswordUseCase>();
+    _updatePersonalInfoUseCase =
+        ServiceLocator.instance.get<UpdatePersonalInfoUseCase>();
     _initializeAuth();
   }
 
@@ -259,6 +265,98 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  // Change password
+  Future<bool> changePassword({
+    required String currentPassword,
+    required String newPassword,
+    required String confirmPassword,
+  }) async {
+    try {
+      _setState(AuthState.loading);
+
+      final accessToken = await _getAccessToken();
+      if (accessToken == null) {
+        _setError('Không tìm thấy token đăng nhập');
+        return false;
+      }
+
+      final request = ChangePasswordRequest(
+        currentPassword: currentPassword,
+        newPassword: newPassword,
+        confirmPassword: confirmPassword,
+      );
+
+      final response =
+          await _changePasswordUseCase.execute(request, accessToken);
+
+      if (response.success) {
+        _setState(AuthState.authenticated);
+        return true;
+      } else {
+        _setError(response.message ?? 'Thay đổi mật khẩu thất bại');
+        return false;
+      }
+    } catch (e) {
+      _setError('Có lỗi xảy ra: $e');
+      return false;
+    }
+  }
+
+  // Update personal info
+  Future<bool> updatePersonalInfo({
+    required String firstName,
+    required String lastName,
+    required String dateOfBirth,
+  }) async {
+    try {
+      _setState(AuthState.loading);
+
+      final accessToken = await _getAccessToken();
+      if (accessToken == null) {
+        _setError('Không tìm thấy token đăng nhập');
+        return false;
+      }
+
+      if (_currentUser?.userId == null || _currentUser!.userId.isEmpty) {
+        _setError('Không tìm thấy thông tin người dùng');
+        return false;
+      }
+
+      final request = UpdatePersonalInfoRequest(
+        firstName: firstName,
+        lastName: lastName,
+        dateOfBirth: dateOfBirth,
+      );
+
+      final response = await _updatePersonalInfoUseCase.execute(
+        request,
+        _currentUser!.userId,
+        accessToken,
+      );
+
+      if (response.success) {
+        // Cập nhật thông tin người dùng trong local storage
+        if (_currentUser != null) {
+          final updatedUser = _currentUser!.copyWith(
+            firstName: firstName,
+            lastName: lastName,
+            dateOfBirth: dateOfBirth,
+          );
+          _currentUser = updatedUser;
+          await _saveUserToStorage(updatedUser);
+        }
+        _setState(AuthState.authenticated);
+        return true;
+      } else {
+        _setError(response.message ?? 'Cập nhật thông tin thất bại');
+        return false;
+      }
+    } catch (e) {
+      _setError('Có lỗi xảy ra: $e');
+      return false;
+    }
+  }
+
   // Private methods for SharedPreferences
   static const String _userKey = 'currentUser';
   static const String _accessTokenKey = 'accessToken';
@@ -319,6 +417,11 @@ class AuthProvider extends ChangeNotifier {
   Future<void> _clearAccessToken() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_accessTokenKey);
+  }
+
+  Future<String?> _getAccessToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_accessTokenKey);
   }
 
   // Biometric authentication methods

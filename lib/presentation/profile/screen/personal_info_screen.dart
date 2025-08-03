@@ -209,7 +209,7 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
                         label: 'Email',
                         controller: _emailController,
                         icon: Icons.email_outlined,
-                        enabled: false, // Email không được chỉnh sửa
+                        enabled: _isEditing, // Email không được chỉnh sửa
                       ),
 
                       const SizedBox(height: 16),
@@ -403,19 +403,79 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
     });
   }
 
-  void _saveChanges() {
-    // TODO: Implement API call to update user info
-    // For now, just show a success message
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Thông tin đã được cập nhật'),
-        backgroundColor: AppTheme.successGreen,
-      ),
-    );
+  Future<void> _saveChanges() async {
+    // Validate required fields
+    if (_firstNameController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Vui lòng nhập họ'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
 
-    setState(() {
-      _isEditing = false;
-    });
+    if (_lastNameController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Vui lòng nhập tên'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    if (_selectedDate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Vui lòng chọn ngày sinh'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    // Convert date format from DD/MM/YYYY to YYYY-MM-DD
+    final dateParts = _selectedDate!.split('/');
+    final formattedDate = '${dateParts[2]}-${dateParts[1]}-${dateParts[0]}';
+
+    try {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final success = await authProvider.updatePersonalInfo(
+        firstName: _firstNameController.text.trim(),
+        lastName: _lastNameController.text.trim(),
+        dateOfBirth: formattedDate,
+      );
+
+      if (success && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Thông tin đã được cập nhật thành công'),
+            backgroundColor: AppTheme.successGreen,
+          ),
+        );
+        setState(() {
+          _isEditing = false;
+        });
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                authProvider.errorMessage ?? 'Cập nhật thông tin thất bại'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Có lỗi xảy ra: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   void _showAvatarOptions() {
@@ -542,7 +602,7 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
                 ],
               ),
             ),
-           const Icon(
+            const Icon(
               Icons.arrow_forward_ios,
               size: 16,
               color: AppTheme.mediumGray,

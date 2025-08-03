@@ -20,6 +20,10 @@ class ServiceLocator {
     _services[SendOtpUseCase] = SendOtpUseCase(_services[AuthRepository]);
     _services[VerifyOtpUseCase] = VerifyOtpUseCase(_services[AuthRepository]);
     _services[LoginUseCase] = LoginUseCase(_services[AuthRepository]);
+    _services[ChangePasswordUseCase] =
+        ChangePasswordUseCase(_services[AuthRepository]);
+    _services[UpdatePersonalInfoUseCase] =
+        UpdatePersonalInfoUseCase(_services[AuthRepository]);
     _services[SearchPlacesUseCase] =
         SearchPlacesUseCase(_services[PlaceRepository]);
     _services[ReverseGeocodingUseCase] =

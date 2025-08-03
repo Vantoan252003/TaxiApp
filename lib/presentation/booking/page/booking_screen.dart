@@ -27,28 +27,18 @@ class RideScreen extends StatefulWidget {
 class _RideScreenState extends State<RideScreen> {
   String _selectedVehicleType = 'beCar Plus';
 
-  // Tọa độ mẫu cho điểm đi và điểm đến (fallback values)
+  // Tọa độ mẫu cho điểm đi và điểm đến (sử dụng tọa độ từ VietMap API example)
   late final LatLng _originLatLng;
   late final LatLng _destinationLatLng;
 
   @override
   void initState() {
     super.initState();
-    // Use provided coordinates or fallback to default values
-    _originLatLng = widget.originLatLng ?? const LatLng(10.762317, 106.654551);
-    _destinationLatLng =
-        widget.destinationLatLng ?? const LatLng(10.772317, 106.664551);
-
-    // Debug: Check coordinates
-    print('DEBUG: RideScreen initialized');
-    print(
-        'DEBUG: Origin from widget: ${widget.originLatLng?.latitude}, ${widget.originLatLng?.longitude}');
-    print(
-        'DEBUG: Destination from widget: ${widget.destinationLatLng?.latitude}, ${widget.destinationLatLng?.longitude}');
-    print(
-        'DEBUG: Final origin: ${_originLatLng.latitude}, ${_originLatLng.longitude}');
-    print(
-        'DEBUG: Final destination: ${_destinationLatLng.latitude}, ${_destinationLatLng.longitude}');
+    // Use provided coordinates or fallback to coordinates from VietMap API example
+    _originLatLng = widget.originLatLng ??
+        const LatLng(10.79628438955497, 106.70592293472612);
+    _destinationLatLng = widget.destinationLatLng ??
+        const LatLng(10.801891047584164, 106.70660958023404);
   }
 
   @override

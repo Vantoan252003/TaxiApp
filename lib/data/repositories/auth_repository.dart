@@ -6,6 +6,10 @@ abstract class AuthRepository {
   Future<OtpResponse> sendOtp(AuthRequest request);
   Future<AuthResponse> verifyOtp(OtpVerificationRequest request);
   Future<AuthResponse> login(LoginRequest request);
+  Future<AuthResponse> changePassword(
+      ChangePasswordRequest request, String accessToken);
+  Future<AuthResponse> updatePersonalInfo(
+      UpdatePersonalInfoRequest request, String userId, String accessToken);
 }
 
 class AuthRepositoryImpl implements AuthRepository {
@@ -32,6 +36,33 @@ class AuthRepositoryImpl implements AuthRepository {
     final response = await ApiClient.post(
       ApiEndpoints.login,
       body: request.toJson(),
+    );
+    return AuthResponse.fromJson(response);
+  }
+
+  @override
+  Future<AuthResponse> changePassword(
+      ChangePasswordRequest request, String accessToken) async {
+    final response = await ApiClient.put(
+      ApiEndpoints.changePassword,
+      body: request.toJson(),
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+      },
+    );
+    return AuthResponse.fromJson(response);
+  }
+
+  @override
+  Future<AuthResponse> updatePersonalInfo(UpdatePersonalInfoRequest request,
+      String userId, String accessToken) async {
+    final endpoint = ApiEndpoints.updatePersonalInfo.replaceAll('{id}', userId);
+    final response = await ApiClient.put(
+      endpoint,
+      body: request.toJson(),
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+      },
     );
     return AuthResponse.fromJson(response);
   }

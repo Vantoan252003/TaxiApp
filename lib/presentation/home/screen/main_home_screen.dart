@@ -19,18 +19,12 @@ class MainHomeScreen extends StatefulWidget {
 }
 
 class _MainHomeScreenState extends State<MainHomeScreen> {
-
-
   @override
   void initState() {
     super.initState();
 
     _loadUserInfo();
   }
-
-
-
-
 
   Future<void> _loadUserInfo() async {
     // Load user info từ API khi vào màn hình
@@ -49,14 +43,12 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
     );
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         backgroundColor: AppTheme.backgroundColor,
         body: SafeArea(
-            child: Consumer<AuthProvider>(
+          child: Consumer<AuthProvider>(
             builder: (context, authProvider, child) {
               return Column(
                 children: [
@@ -93,7 +85,6 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
                             const SizedBox(height: 20),
 
                             // Stats Section - Thông tin chuyến xe, tích điểm, tiết kiệm
-                   
 
                             // Popular Places
                             const HomePopularPlaces(),
