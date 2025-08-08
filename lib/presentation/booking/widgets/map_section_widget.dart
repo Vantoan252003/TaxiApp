@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:math';
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:vietmap_flutter_gl/vietmap_flutter_gl.dart';
@@ -10,7 +9,7 @@ class MapSectionWidget extends StatefulWidget {
   final LatLng originLatLng;
   final LatLng destinationLatLng;
 
-  const MapSectionWidget({
+  const MapSectionWidget({ 
     Key? key,
     required this.originLatLng,
     required this.destinationLatLng,
@@ -24,9 +23,6 @@ class _MapSectionWidgetState extends State<MapSectionWidget> {
   VietmapController? _mapController;
   Line? _routeLine;
   List<LatLng> _routePoints = [];
-
-  Symbol? _originSymbol;
-  Symbol? _destinationSymbol;
   Timer? _polylineTimer;
   int _polylineIndex = 0;
 
@@ -69,13 +65,13 @@ class _MapSectionWidgetState extends State<MapSectionWidget> {
     await _mapController!.addImage('destinationIcon',
         await _loadAssetImage('assets/images/destination.png'));
 
-    _originSymbol = await _mapController!.addSymbol(SymbolOptions(
+    Symbol? originSymbol = await _mapController!.addSymbol(SymbolOptions(
       geometry: widget.originLatLng,
       iconImage: 'originIcon',
       iconSize: 0.8,
       iconAnchor: "bottom",
     ));
-    _destinationSymbol = await _mapController!.addSymbol(SymbolOptions(
+    Symbol? destinationSymbol = await _mapController!.addSymbol(SymbolOptions(
       geometry: widget.destinationLatLng,
       iconImage: 'destinationIcon',
       iconSize: 0.8,

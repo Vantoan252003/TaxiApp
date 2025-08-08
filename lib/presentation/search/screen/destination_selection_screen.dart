@@ -4,8 +4,10 @@ import 'package:vietmap_flutter_gl/vietmap_flutter_gl.dart';
 import '../../../core/services/location_cache_service.dart';
 import '../../../core/services/location_service.dart';
 import '../../../core/services/service_locator.dart';
+import '../../../core/services/fare_estimate_service.dart';
 import '../../../core/providers/place_provider.dart';
 import '../../../data/models/place_model.dart';
+import '../../../data/models/fare_estimate_model.dart';
 import '../../../domain/usecase/place_usecases.dart';
 import '../widgets/index.dart';
 import '../../booking/page/booking_screen.dart';
@@ -195,19 +197,14 @@ class _DestinationSelectionScreenState
             if (originResponse.success && originResponse.data.isNotEmpty) {
               final originDetail = originResponse.data.first;
               originLatLng = LatLng(originDetail.lat, originDetail.lng);
-              print(
-                  'DEBUG: Origin coordinates from API: ${originDetail.lat}, ${originDetail.lng}');
             }
           } catch (e) {
-            print('DEBUG: Error getting origin coordinates: $e');
             // Use default origin coordinates as fallback
             originLatLng = const LatLng(10.762317, 106.654551);
           }
         } else {
           // Check if origin is current location
           if (_originController.text.trim() == "Vị trí hiện tại") {
-            print(
-                'DEBUG: Origin is current location, getting current coordinates...');
             try {
               // Get current location coordinates from cache
               final cachedCoords =
@@ -215,21 +212,30 @@ class _DestinationSelectionScreenState
               if (cachedCoords != null) {
                 originLatLng =
                     LatLng(cachedCoords['lat']!, cachedCoords['lng']!);
-                print(
-                    'DEBUG: Current location coordinates from cache: ${cachedCoords['lat']}, ${cachedCoords['lng']}');
               } else {
-                print(
-                    'DEBUG: Could not get current position from cache, using default coordinates');
                 originLatLng = const LatLng(10.762317, 106.654551);
               }
             } catch (e) {
-              print('DEBUG: Error getting current location: $e');
               originLatLng = const LatLng(10.762317, 106.654551);
             }
           } else {
-            print(
-                'DEBUG: No origin RefId available, using default coordinates');
             originLatLng = const LatLng(10.762317, 106.654551);
+          }
+        }
+
+        // Get fare estimate
+        FareEstimateResponse? fareEstimate;
+        if (originLatLng != null && destinationLatLng != null) {
+          try {
+            fareEstimate = await FareEstimateService.getFareEstimate(
+              pickupLat: originLatLng.latitude,
+              pickupLng: originLatLng.longitude,
+              destLat: destinationLatLng.latitude,
+              destLng: destinationLatLng.longitude,
+            );
+          } catch (e) {
+            print('Error getting fare estimate: $e');
+            // Continue without fare estimate
           }
         }
 
@@ -238,8 +244,8 @@ class _DestinationSelectionScreenState
           Navigator.pop(context);
         }
         if (destinationLatLng != null) {
-          // Navigate to ride screen with both coordinates
-          print('DEBUG: Navigating to RideScreen with both coordinates');
+          // Navigate to ride screen with both coordinates and fare estimate
+
           if (context.mounted) {
             Navigator.push(
               context,
@@ -249,12 +255,12 @@ class _DestinationSelectionScreenState
                   destination: _destinationController.text.trim(),
                   originLatLng: originLatLng,
                   destinationLatLng: destinationLatLng,
+                  fareEstimate: fareEstimate,
                 ),
               ),
             );
           }
         } else {
-          print('DEBUG: Failed to get destination coordinates, using fallback');
           // Fallback to regular navigation if destination API fails
           _navigateToRideScreen();
         }
@@ -387,7 +393,7 @@ class _DestinationSelectionScreenState
                 children: [
                   Icon(Icons.location_on,
                       color: Colors.grey.shade600, size: 16),
-                  if (place.distance != null) ...[
+                  ...[
                     const SizedBox(height: 2),
                     Text(
                       _formatDistance(place.distance),

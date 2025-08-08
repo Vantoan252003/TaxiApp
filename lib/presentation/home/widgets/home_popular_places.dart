@@ -54,7 +54,7 @@ class HomePopularPlaces extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
+              const Text(
                 'Địa điểm phổ biến',
                 style: AppTheme.heading3,
               ),

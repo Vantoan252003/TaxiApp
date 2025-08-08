@@ -94,7 +94,7 @@ class ProfileHeader extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.verified,
                           size: 16,
                           color: AppTheme.successGreen,

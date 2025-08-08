@@ -138,7 +138,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                       label: 'Mật khẩu hiện tại',
                       hintText: 'Nhập mật khẩu hiện tại',
                       isObscured: _obscureCurrentPassword,
-                      prefixIcon: Icon(Icons.lock_outline),
+                      prefixIcon: const Icon(Icons.lock_outline),
                       suffixIcon: IconButton(
                         icon: Icon(
                           _obscureCurrentPassword
@@ -167,7 +167,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                       label: 'Mật khẩu mới',
                       hintText: 'Nhập mật khẩu mới',
                       isObscured: _obscureNewPassword,
-                      prefixIcon: Icon(Icons.lock_outline),
+                      prefixIcon: const Icon(Icons.lock_outline),
                       suffixIcon: IconButton(
                         icon: Icon(
                           _obscureNewPassword
@@ -202,7 +202,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                       label: 'Xác nhận mật khẩu mới',
                       hintText: 'Nhập lại mật khẩu mới',
                       isObscured: _obscureConfirmPassword,
-                      prefixIcon: Icon(Icons.lock_outline),
+                      prefixIcon: const Icon(Icons.lock_outline),
                       suffixIcon: IconButton(
                         icon: Icon(
                           _obscureConfirmPassword

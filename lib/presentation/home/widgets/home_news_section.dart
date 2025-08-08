@@ -52,7 +52,7 @@ class HomeNewsSection extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
+              const Text(
                 'Tin tức & Khuyến mãi',
                 style: AppTheme.heading3,
               ),
@@ -138,7 +138,7 @@ class HomeNewsSection extends StatelessWidget {
                     ),
                   ],
                 ),
-                trailing: Icon(
+                trailing: const Icon(
                   Icons.chevron_right,
                   color: AppTheme.lightGray,
                   size: 20,

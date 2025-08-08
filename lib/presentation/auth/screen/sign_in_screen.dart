@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:taxi_app/presentation/auth/controllers/handle_sign_in.dart';
 import 'package:taxi_app/presentation/auth/screen/phone_input_screen.dart';
 import '../../../core/constants/app_theme.dart';
 import '../../../core/constants/app_constants.dart';
@@ -151,7 +152,13 @@ class _SignInScreenState extends State<SignInScreen> {
                       text: 'Đăng nhập',
                       width: double.infinity,
                       isLoading: authProvider.isLoading,
-                      onPressed: () => _handleSignIn(authProvider),
+                     onPressed: () => HandleSignIn.handleSignIn(
+    authProvider: authProvider,
+    context: context,
+    formKey: _formKey,
+    emailOrPhoneController: _emailOrPhoneController,
+    passwordController: _passwordController,
+  ),
                     ),
 
                     const SizedBox(height: 20),
@@ -180,7 +187,8 @@ class _SignInScreenState extends State<SignInScreen> {
                     // Don't have account
                     Center(
                       child: TextButton(
-                        child: Text('Bạn chưa có tài khoản? Quay lại để đăng ký'),
+                        child: const Text(
+                            'Bạn chưa có tài khoản? Quay lại để đăng ký'),
                         onPressed: () {
                           Navigator.of(context).push(
                             MaterialPageRoute(
@@ -198,44 +206,5 @@ class _SignInScreenState extends State<SignInScreen> {
         ),
       ),
     );
-  }
-
-  void _handleSignIn(AuthProvider authProvider) async {
-    if (_formKey.currentState!.validate()) {
-      String emailOrPhone = _emailOrPhoneController.text.trim();
-
-      // Process phone number format for API
-      // If it's a phone number (contains only digits), remove leading 0
-      if (RegExp(r'^0?\d+$').hasMatch(emailOrPhone)) {
-        // Remove leading 0 if exists for API format
-        if (emailOrPhone.startsWith('0')) {
-          emailOrPhone = emailOrPhone.substring(1);
-        }
-      }
-      // If it's email, keep as is
-
-      await authProvider.login(
-        emailOrPhone: emailOrPhone,
-        password: _passwordController.text.trim(),
-      );
-
-      if (mounted) {
-        if (authProvider.state == AuthState.authenticated) {
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (context) => const HomeScreen()),
-            (route) => false,
-          );
-        } else if (authProvider.errorMessage != null) {
-          // Show error message
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(authProvider.errorMessage!),
-              backgroundColor: AppTheme.warningRed,
-            ),
-          );
-          authProvider.clearError();
-        }
-      }
-    }
   }
 }

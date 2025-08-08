@@ -19,7 +19,7 @@ class TripRouteCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          const Text(
             'Hành trình',
             style: AppTheme.heading3,
           ),

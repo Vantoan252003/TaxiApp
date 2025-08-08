@@ -34,7 +34,6 @@ class AutocompleteField extends StatefulWidget {
 
 class _AutocompleteFieldState extends State<AutocompleteField> {
   final FocusNode _focusNode = FocusNode();
-  bool _showSuggestions = false;
   bool _showClearIcon = false;
   Timer? _debounceTimer;
 
@@ -56,7 +55,6 @@ class _AutocompleteFieldState extends State<AutocompleteField> {
   }
 
   void _onFocusChange() {
-    _showSuggestions = _focusNode.hasFocus;
     widget.onFocusChanged(_focusNode.hasFocus);
     setState(() {});
   }
@@ -134,7 +132,7 @@ class _AutocompleteFieldState extends State<AutocompleteField> {
                           horizontal: 0,
                         ),
                         suffixIcon: IconButton(
-                          icon: Icon(
+                            icon: Icon(
                             Icons.clear,
                             color: _showClearIcon
                                 ? Colors.grey.shade600

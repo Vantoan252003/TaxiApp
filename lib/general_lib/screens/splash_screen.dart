@@ -89,24 +89,14 @@ class _SplashScreenState extends State<SplashScreen> {
                   scale: 0.8 + (0.2 * value),
                   child: Opacity(
                     opacity: value,
-                    child: Container(
-                      width: 100,
-                      height: 100,
-                      decoration: BoxDecoration(
-                        color: AppTheme.primaryBlack,
-                        borderRadius: BorderRadius.circular(24),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppTheme.primaryBlack.withOpacity(0.1),
-                            blurRadius: 20,
-                            offset: const Offset(0, 8),
-                          ),
-                        ],
-                      ),
-                      child: const Icon(
-                        Icons.local_taxi,
-                        size: 50,
-                        color: Colors.white,
+                    child: ClipRRect(
+                      borderRadius:
+                          BorderRadius.circular(10), // Bo tròn với bán kính 25
+                      child: Image.asset(
+                        'assets/icon/app_icon.png',
+                        width: 80,
+                        height: 80,
+                        fit: BoxFit.cover,
                       ),
                     ),
                   ),

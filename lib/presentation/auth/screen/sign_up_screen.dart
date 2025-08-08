@@ -340,7 +340,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       });
 
       try {
-        final response = await RegistrationService.register(
+        await RegistrationService.register(
           phoneNumber: _phoneController.text
               .trim(), // luôn lấy từ controller, đã readonly
           password: _passwordController.text.trim(),

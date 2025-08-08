@@ -15,7 +15,7 @@ class TripPaymentCard extends StatelessWidget {
     // Mock data for payment details
     final baseFare = trip.fare;
     final discount = baseFare * 0.1; // 10% discount
-    final insurance = 5000.0; // 5,000 VNĐ insurance
+    const insurance = 5000.0; // 5,000 VNĐ insurance
     final totalFare = baseFare - discount + insurance;
 
     return Container(
@@ -25,7 +25,7 @@ class TripPaymentCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          const Text(
             'Chi tiết thanh toán',
             style: AppTheme.heading3,
           ),
@@ -97,7 +97,7 @@ class TripPaymentCard extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.credit_card,
                     size: 20,
                     color: AppTheme.mediumGray,

@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:taxi_app/presentation/promo/screen/promo_screen.dart';
+import '../../../data/models/fare_estimate_model.dart';
 
 class RideOptionsPanel extends StatefulWidget {
   final String selectedVehicleType;
   final Function(String) onVehicleSelected;
   final VoidCallback onBookNow;
   final VoidCallback onBookSelected;
+  final FareEstimateResponse? fareEstimate;
 
   const RideOptionsPanel({
     super.key,
@@ -12,6 +15,7 @@ class RideOptionsPanel extends StatefulWidget {
     required this.onVehicleSelected,
     required this.onBookNow,
     required this.onBookSelected,
+    this.fareEstimate,
   });
 
   @override
@@ -23,59 +27,72 @@ class _RideOptionsPanelState extends State<RideOptionsPanel> {
   String _selectedSchedule = 'Now';
   bool _hasPromo = true;
 
-  final List<Map<String, dynamic>> _vehicleTypes = [
-    {
-      'id': 'Car',
-      'name': 'Car',
-      'icon': Icons.directions_car,
-      'description': '4-seater car with extra legroom',
-      'price': 127000.0,
-      'originalPrice': 149000.0,
-      'passengers': 4,
-      'color': Colors.amber,
-    },
-    {
-      'id': 'Bike',
-      'name': 'Xe đạp',
-      'icon': Icons.people,
-      'description': 'Share ride with 1 other',
-      'price': 98000.0,
-      'originalPrice': 121000.0,
-      'passengers': 1,
-      'color': Colors.blue,
-      'isBeta': true,
-    },
-    {
-      'id': 'Motorcycle',
-      'name': 'Xe máy',
-      'icon': Icons.motorcycle,
-      'description': 'Great price',
-      'price': 51000.0,
-      'originalPrice': 51000.0,
-      'passengers': 1,
-      'color': Colors.orange,
-    },
-    {
-      'id': 'Ô tô 4 chỗ',
-      'name': 'beCar 4',
-      'icon': Icons.directions_car,
-      'description': 'Standard 4-seater',
-      'price': 114000.0,
-      'originalPrice': 114000.0,
-      'passengers': 4,
-      'color': Colors.grey,
-    },
-    {
-      'id': 'Premium',
-      'name': 'Premium Car',
-      'icon': Icons.directions_car,
-      'description': 'Luxury ride experience',
-      'price': 180000.0,
-      'originalPrice': 180000.0,
-      'passengers': 4,
-      'color': Colors.purple,
-    },
-  ];
+  List<Map<String, dynamic>> get _vehicleTypes {
+    // Return empty list if no fare estimate available
+    if (widget.fareEstimate == null ||
+        widget.fareEstimate!.data.fares.isEmpty) {
+      return [];
+    }
+
+    // Map API data to vehicle types
+    final vehicleTypeMap = {
+      'MOTORCYCLE': {
+        'id': 'Motorcycle',
+        'name': 'Xe máy',
+        'icon': Icons.motorcycle,
+        'description': 'Great price',
+        'passengers': 1,
+        'color': Colors.orange,
+      },
+      'CAR': {
+        'id': 'Car',
+        'name': 'Car',
+        'icon': Icons.directions_car,
+        'description': '4-seater car with extra legroom',
+        'passengers': 4,
+        'color': Colors.amber,
+      },
+      'BICYCLE': {
+        'id': 'Bike',
+        'name': 'Xe đạp',
+        'icon': Icons.people,
+        'description': 'Share ride with 1 other',
+        'passengers': 1,
+        'color': Colors.blue,
+        'isBeta': true,
+      },
+      'TRUCK': {
+        'id': 'Truck',
+        'name': 'Xe tải',
+        'icon': Icons.local_shipping,
+        'description': 'Large capacity vehicle',
+        'passengers': 2,
+        'color': Colors.grey,
+      },
+    };
+
+    return widget.fareEstimate!.data.fares.map((fare) {
+      final baseInfo = vehicleTypeMap[fare.vehicleType] ??
+          {
+            'id': fare.vehicleType,
+            'name': fare.vehicleType,
+            'icon': Icons.directions_car,
+            'description': 'Standard vehicle',
+            'passengers': 4,
+            'color': Colors.grey,
+          };
+
+      final originalPrice =
+          fare.estimatedFare + widget.fareEstimate!.data.promoDiscount;
+      final finalPrice = fare.estimatedFare;
+
+      return {
+        ...baseInfo,
+        'price': finalPrice,
+        'originalPrice': originalPrice,
+      };
+    }).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -107,20 +124,133 @@ class _RideOptionsPanelState extends State<RideOptionsPanel> {
             ),
           ),
 
+          // Trip info section
+          if (widget.fareEstimate != null) _buildTripInfo(),
+
           // Ride options - scrollable với chiều cao cố định
-          Container(
-            height: 200, // Chiều cao cố định để hiển thị ~3 items
-            child: _buildRideOptions(),
-          ),
+          if (_vehicleTypes.isNotEmpty)
+            Container(
+              height: 200, // Chiều cao cố định để hiển thị ~3 items
+              child: _buildRideOptions(),
+            )
+          else
+            Container(
+              height: 100,
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.error_outline,
+                        color: Colors.grey[400], size: 32),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Không có dữ liệu giá cước',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
 
           // Control widgets
           _buildControlWidgets(),
 
           // Booking buttons
-          _buildBookingButtons(),
+          if (_vehicleTypes.isNotEmpty) _buildBookingButtons(),
 
           // Bottom padding for safe area
           const SizedBox(height: 8),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTripInfo() {
+    final data = widget.fareEstimate!.data;
+    final distanceKm = (data.distance / 1000).toStringAsFixed(1);
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Icon(Icons.route, color: Colors.blue[600], size: 20),
+              const SizedBox(width: 8),
+              Text(
+                '$distanceKm km',
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Icon(Icons.access_time, color: Colors.orange[600], size: 20),
+              const SizedBox(width: 8),
+              Text(
+                '${data.estimatedDurationMinutes} phút',
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              if (data.surgeMultiplier > 1.0) ...[
+                const Spacer(),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade100,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    '${data.surgeMultiplier.toStringAsFixed(1)}x',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.red[700],
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+          if (data.promoDiscount > 0.0) ...[
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Icon(Icons.local_offer, color: Colors.green[600], size: 16),
+                const SizedBox(width: 6),
+                Text(
+                  'Giảm ${data.promoDiscount.toStringAsFixed(0)}₫',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.green[700],
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                if (data.promoCode != null) ...[
+                  const SizedBox(width: 8),
+                  Text(
+                    '(${data.promoCode})',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ],
         ],
       ),
     );
@@ -366,9 +496,9 @@ class _RideOptionsPanelState extends State<RideOptionsPanel> {
   }
 
   void _showPromoOptions() {
-    showModalBottomSheet(
+    showDialog(
       context: context,
-      builder: (context) => _buildPromoOptionsSheet(),
+      builder: (context) => const PromoScreeen(),
     );
   }
 
@@ -430,34 +560,6 @@ class _RideOptionsPanelState extends State<RideOptionsPanel> {
               setState(() => _selectedSchedule = 'Later');
               Navigator.pop(context);
             },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPromoOptionsSheet() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Text(
-            'Promo Codes',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 16),
-          if (_hasPromo)
-            ListTile(
-              leading: const Icon(Icons.local_offer, color: Colors.green),
-              title: const Text('WELCOME10'),
-              subtitle: const Text('10% off your first ride'),
-              onTap: () => Navigator.pop(context),
-            ),
-          ListTile(
-            leading: const Icon(Icons.add),
-            title: const Text('Add Promo Code'),
-            onTap: () => Navigator.pop(context),
           ),
         ],
       ),

@@ -56,7 +56,7 @@ class _WalletScreenState extends State<WalletScreen> {
             // Payment Methods Section
             Row(
               children: [
-                Text(
+                const Text(
                   'Phương thức thanh toán',
                   style: AppTheme.heading3,
                 ),
@@ -83,7 +83,7 @@ class _WalletScreenState extends State<WalletScreen> {
                 decoration: AppTheme.cardDecoration,
                 child: Column(
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.credit_card_outlined,
                       size: 48,
                       color: AppTheme.mediumGray,
@@ -113,7 +113,7 @@ class _WalletScreenState extends State<WalletScreen> {
             // Recent Transactions Section
             Row(
               children: [
-                Text(
+                const Text(
                   'Giao dịch gần đây',
                   style: AppTheme.heading3,
                 ),
@@ -138,7 +138,7 @@ class _WalletScreenState extends State<WalletScreen> {
                 decoration: AppTheme.cardDecoration,
                 child: Column(
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.receipt_long_outlined,
                       size: 48,
                       color: AppTheme.mediumGray,

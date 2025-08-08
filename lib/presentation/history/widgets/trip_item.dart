@@ -162,7 +162,7 @@ class TripItem extends StatelessWidget {
                 if (trip.rating > 0) ...[
                   Row(
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.star,
                         size: 14,
                         color: AppTheme.warningOrange,

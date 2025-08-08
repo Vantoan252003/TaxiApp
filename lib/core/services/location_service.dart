@@ -5,7 +5,6 @@ import '../../data/models/place_model.dart';
 import 'package:geolocator/geolocator.dart';
 
 class LocationService {
-  static const String _baseUrl = ApiEndpoints.baseUrl;
   static const String _accessTokenKey = 'accessToken';
 
   static Future<bool> _handleLocationPermission() async {
