@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_theme.dart';
 import '../../../user_lib/widgets/custom_bottom_navigation_bar.dart';
+import '../controllers/home_controller.dart';
 import 'main_home_screen.dart';
 import '../../ride/screen/rides_screen.dart';
 import '../../../user_lib/screens/wallet_screen.dart';
@@ -15,7 +16,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _currentIndex = 0;
+  late final HomeController _controller;
 
   final List<Widget> _screens = [
     const MainHomeScreen(),
@@ -26,18 +27,31 @@ class _HomeScreenState extends State<HomeScreen> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _controller = HomeController();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppTheme.backgroundColor,
-      body: _screens[_currentIndex],
-      bottomNavigationBar: CustomBottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-      ),
+    return ListenableBuilder(
+      listenable: _controller,
+      builder: (context, child) {
+        return Scaffold(
+          backgroundColor: AppTheme.backgroundColor,
+          body: _screens[_controller.currentIndex],
+          bottomNavigationBar: CustomBottomNavigationBar(
+            currentIndex: _controller.currentIndex,
+            onTap: _controller.setCurrentIndex,
+          ),
+        );
+      },
     );
   }
 }

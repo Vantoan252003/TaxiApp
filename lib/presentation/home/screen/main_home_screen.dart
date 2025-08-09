@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../core/constants/app_constants.dart';
 import '../../../core/constants/app_theme.dart';
 import '../../../core/providers/auth_provider.dart';
+import '../controllers/main_home_controller.dart';
 import '../widgets/home_banner_section.dart';
 import '../widgets/home_location_section.dart';
 import '../widgets/home_services_grid.dart';
@@ -19,28 +19,19 @@ class MainHomeScreen extends StatefulWidget {
 }
 
 class _MainHomeScreenState extends State<MainHomeScreen> {
+  late final MainHomeController _controller;
+
   @override
   void initState() {
     super.initState();
-
-    _loadUserInfo();
-  }
-
-  Future<void> _loadUserInfo() async {
-    // Load user info từ API khi vào màn hình
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    await authProvider.loadUserInfo();
+    _controller = MainHomeController();
+    _controller.loadUserInfo(context);
   }
 
   @override
   void dispose() {
+    _controller.dispose();
     super.dispose();
-  }
-
-  void _showFeatureInDevelopment(String feature) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('$feature ${AppConstants.featureInDevelopment}')),
-    );
   }
 
   @override
@@ -75,8 +66,8 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
                             // Services Grid - Đặt lên đầu để dễ đặt xe
                             HomeServicesGrid(
                               onServiceTap: (serviceType) =>
-                                  _showFeatureInDevelopment(
-                                      'Dịch vụ $serviceType'),
+                                  _controller.showFeatureInDevelopment(
+                                      context, 'Dịch vụ $serviceType'),
                             ),
                             const SizedBox(height: 20),
 

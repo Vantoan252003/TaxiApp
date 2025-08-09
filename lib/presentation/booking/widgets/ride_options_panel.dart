@@ -24,7 +24,6 @@ class RideOptionsPanel extends StatefulWidget {
 
 class _RideOptionsPanelState extends State<RideOptionsPanel> {
   String _selectedPaymentMethod = 'Zalopay';
-  String _selectedSchedule = 'Now';
   bool _hasPromo = true;
 
   List<Map<String, dynamic>> get _vehicleTypes {
@@ -40,15 +39,15 @@ class _RideOptionsPanelState extends State<RideOptionsPanel> {
         'id': 'Motorcycle',
         'name': 'Xe máy',
         'icon': Icons.motorcycle,
-        'description': 'Great price',
+        'description': 'Giá tốt',
         'passengers': 1,
         'color': Colors.orange,
       },
       'CAR': {
         'id': 'Car',
-        'name': 'Car',
+        'name': 'Ô tô',
         'icon': Icons.directions_car,
-        'description': '4-seater car with extra legroom',
+        'description': 'Ô tô 4 chỗ',
         'passengers': 4,
         'color': Colors.amber,
       },
@@ -56,7 +55,7 @@ class _RideOptionsPanelState extends State<RideOptionsPanel> {
         'id': 'Bike',
         'name': 'Xe đạp',
         'icon': Icons.people,
-        'description': 'Share ride with 1 other',
+        'description': 'Chia sẻ xe với 1 người khác',
         'passengers': 1,
         'color': Colors.blue,
         'isBeta': true,
@@ -65,7 +64,7 @@ class _RideOptionsPanelState extends State<RideOptionsPanel> {
         'id': 'Truck',
         'name': 'Xe tải',
         'icon': Icons.local_shipping,
-        'description': 'Large capacity vehicle',
+        'description': 'Rộng',
         'passengers': 2,
         'color': Colors.grey,
       },
@@ -129,12 +128,12 @@ class _RideOptionsPanelState extends State<RideOptionsPanel> {
 
           // Ride options - scrollable với chiều cao cố định
           if (_vehicleTypes.isNotEmpty)
-            Container(
+            SizedBox(
               height: 200, // Chiều cao cố định để hiển thị ~3 items
               child: _buildRideOptions(),
             )
           else
-            Container(
+            SizedBox(
               height: 100,
               child: Center(
                 child: Column(
@@ -488,13 +487,6 @@ class _RideOptionsPanelState extends State<RideOptionsPanel> {
     );
   }
 
-  void _showScheduleOptions() {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => _buildScheduleOptionsSheet(),
-    );
-  }
-
   void _showPromoOptions() {
     showDialog(
       context: context,
@@ -526,38 +518,6 @@ class _RideOptionsPanelState extends State<RideOptionsPanel> {
             title: const Text('Credit Card'),
             onTap: () {
               setState(() => _selectedPaymentMethod = 'Credit Card');
-              Navigator.pop(context);
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildScheduleOptionsSheet() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Text(
-            'Schedule Ride',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 16),
-          ListTile(
-            leading: const Icon(Icons.schedule),
-            title: const Text('Now'),
-            onTap: () {
-              setState(() => _selectedSchedule = 'Now');
-              Navigator.pop(context);
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.access_time),
-            title: const Text('Later'),
-            onTap: () {
-              setState(() => _selectedSchedule = 'Later');
               Navigator.pop(context);
             },
           ),

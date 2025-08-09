@@ -53,7 +53,7 @@ class PromoItem extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: TextStyle(fontSize: 16),
+                      style: const TextStyle(fontSize: 16),
                     ),
                     Row(
                       children: [
@@ -65,7 +65,7 @@ class PromoItem extends StatelessWidget {
                         )),
                         Container(
                           padding:
-                              EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                             const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(8),
                             color: Colors.grey[100],
@@ -97,10 +97,10 @@ class PromoItem extends StatelessWidget {
                           fontWeight: FontWeight.bold),
                     ),
                   ),
-                  Container(
-                    
-                    child: Text('Mua goi va su dung'),
-                  )
+                    Container(
+                      
+                      child: Text('Mua goi va su dung'),
+                    )
                 ],
               )
             ],

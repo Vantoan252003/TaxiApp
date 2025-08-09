@@ -79,10 +79,6 @@ class AuthProvider extends ChangeNotifier {
 
   // Check if user registration is complete
   bool _isRegistrationComplete(UserModel user) {
-    // For auto-login, we only need basic user info (userId, email, phoneNumber)
-    // firstName and lastName are optional and can be filled later
-    // isVerified can be null (assume verified if not specified)
-    // If user has accessToken, they are considered authenticated
     final hasBasicInfo = user.userId.isNotEmpty &&
         (user.email.isNotEmpty || user.phoneNumber.isNotEmpty);
 
@@ -328,7 +324,6 @@ class AuthProvider extends ChangeNotifier {
         firstName: firstName,
         lastName: lastName,
         dateOfBirth: dateOfBirth,
-   
       );
 
       final response = await _updatePersonalInfoUseCase.execute(

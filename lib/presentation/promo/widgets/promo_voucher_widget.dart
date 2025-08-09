@@ -79,7 +79,7 @@ class _PromoVoucherWidgetState extends State<PromoVoucherWidget> {
             ),
             Expanded(
               child: Padding(
-                  padding: EdgeInsets.only(top: 10),
+                  padding: const EdgeInsets.only(top: 10),
                   child: Container(
                     decoration: BoxDecoration(
                       color: Colors.grey[100],

@@ -29,7 +29,7 @@ class PromoHeader extends StatelessWidget {
                   Icons.star_outline_outlined,
                   color: Colors.amber,
                 ),
-                const SizedBox(
+                 SizedBox(
                   width: 10,
                 ),
                 Text(

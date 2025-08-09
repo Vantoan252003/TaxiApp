@@ -124,11 +124,11 @@ class ProfileScreen extends StatelessWidget {
       if (authProvider.currentUser != null) {
         userPhone = authProvider.currentUser!.phoneNumber;
         // Nếu số điện thoại có định dạng +84, chuyển về 0
-        if (userPhone != null && userPhone.startsWith('+84')) {
+        if (userPhone.startsWith('+84')) {
           userPhone = '0${userPhone.substring(3)}';
         }
         // Nếu số điện thoại không có 0 ở đầu, thêm vào
-        if (userPhone != null && !userPhone.startsWith('0')) {
+        if ( !userPhone.startsWith('0')) {
           userPhone = '0$userPhone';
         }
       }
