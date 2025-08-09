@@ -3,8 +3,8 @@ import '../../../core/constants/app_theme.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/validators/form_validators.dart';
 import '../../../core/services/registration_service.dart';
-import '../../../general_lib/widgets/forms/custom_text_field.dart';
-import '../../../general_lib/widgets/forms/custom_button.dart';
+import '../../common/widgets/forms/custom_text_field.dart';
+import '../../common/widgets/forms/custom_button.dart';
 import 'sign_in_screen.dart';
 
 class SignUpScreen extends StatefulWidget {

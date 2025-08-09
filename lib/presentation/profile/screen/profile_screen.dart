@@ -3,11 +3,11 @@ import 'package:provider/provider.dart';
 import '../../../core/constants/app_theme.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../auth/screen/sign_in_screen.dart';
-import '../../../user_lib/widgets/profile_header.dart';
-import '../../../user_lib/widgets/profile_menu_section.dart';
-import '../../../user_lib/widgets/logout_dialog.dart';
+import '../widgets/profile_header.dart';
+import '../widgets/profile_menu_section.dart';
+import '../widgets/logout_dialog.dart';
 import 'personal_info_screen.dart';
-import '../../../user_lib/screens/security_screen.dart';
+import '../screen/security_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});

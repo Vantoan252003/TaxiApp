@@ -37,8 +37,8 @@ class PromoVoucherListWidget extends StatelessWidget {
         Expanded(
             child: ListView(
           children: [
-            PromoItem(
-              icon: '🛵',
+            const PromoItem(
+               icon: '🛵',
               title: 'beBike Thả ga đi chuyển',
               subtitle: 'Ưu đãi 20% lên đến 30K beBike',
               price: '35.000 đ',

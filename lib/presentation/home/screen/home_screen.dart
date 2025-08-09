@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_theme.dart';
-import '../../../user_lib/widgets/custom_bottom_navigation_bar.dart';
+import '../../common/widgets/navigation/custom_bottom_navigation_bar.dart';
 import '../controllers/home_controller.dart';
 import 'main_home_screen.dart';
 import '../../ride/screen/rides_screen.dart';
-import '../../../user_lib/screens/wallet_screen.dart';
+import '../../payment/screen/wallet_screen.dart';
 import '../../history/screen/activity_screen.dart';
 import '../../profile/screen/profile_screen.dart';
 

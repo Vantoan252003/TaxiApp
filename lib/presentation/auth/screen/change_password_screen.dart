@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_theme.dart';
 import '../../../core/providers/auth_provider.dart';
-import '../../../general_lib/widgets/forms/custom_button.dart';
-import '../../../general_lib/widgets/forms/custom_text_field.dart';
+import '../../common/widgets/forms/custom_button.dart';
+import '../../common/widgets/forms/custom_text_field.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
   const ChangePasswordScreen({super.key});

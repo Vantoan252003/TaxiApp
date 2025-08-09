@@ -24,7 +24,7 @@ class HomeBannerSection extends StatelessWidget {
                 left: 0,
                 right: 0,
                 child: Container(
-                  height: 120,
+                  height: MediaQuery.of(context).size.height * 0.2,
                   decoration: BoxDecoration(
                     color: AppTheme.primaryBlack.withOpacity(0.3),
                     image: const DecorationImage(
@@ -74,7 +74,7 @@ class HomeBannerSection extends StatelessWidget {
 
               // Nội dung chính
               Padding(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.only(top: 100, left: 10),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [

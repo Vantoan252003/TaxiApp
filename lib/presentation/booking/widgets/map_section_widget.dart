@@ -9,7 +9,7 @@ class MapSectionWidget extends StatefulWidget {
   final LatLng originLatLng;
   final LatLng destinationLatLng;
 
-  const MapSectionWidget({ 
+  const MapSectionWidget({
     Key? key,
     required this.originLatLng,
     required this.destinationLatLng,
@@ -65,13 +65,13 @@ class _MapSectionWidgetState extends State<MapSectionWidget> {
     await _mapController!.addImage('destinationIcon',
         await _loadAssetImage('assets/images/destination.png'));
 
-    Symbol? originSymbol = await _mapController!.addSymbol(SymbolOptions(
+    await _mapController!.addSymbol(SymbolOptions(
       geometry: widget.originLatLng,
       iconImage: 'originIcon',
       iconSize: 0.8,
       iconAnchor: "bottom",
     ));
-    Symbol? destinationSymbol = await _mapController!.addSymbol(SymbolOptions(
+    await _mapController!.addSymbol(SymbolOptions(
       geometry: widget.destinationLatLng,
       iconImage: 'destinationIcon',
       iconSize: 0.8,

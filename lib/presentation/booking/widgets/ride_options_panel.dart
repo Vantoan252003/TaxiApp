@@ -24,7 +24,7 @@ class RideOptionsPanel extends StatefulWidget {
 
 class _RideOptionsPanelState extends State<RideOptionsPanel> {
   String _selectedPaymentMethod = 'Zalopay';
-  bool _hasPromo = true;
+  final bool _hasPromo = true;
 
   List<Map<String, dynamic>> get _vehicleTypes {
     // Return empty list if no fare estimate available

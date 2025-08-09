@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'general_lib/screens/splash_screen.dart';
-import 'general_lib/screens/auth_wrapper.dart';
+import 'presentation/common/screens/splash_screen.dart';
+import 'presentation/common/screens/auth_wrapper.dart';
 import 'core/services/service_locator.dart';
 import 'core/providers/auth_provider.dart';
 import 'core/providers/place_provider.dart';

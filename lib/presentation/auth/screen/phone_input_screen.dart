@@ -4,8 +4,8 @@ import '../../../core/constants/app_theme.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../core/validators/form_validators.dart';
-import '../../../general_lib/widgets/forms/custom_text_field.dart';
-import '../../../general_lib/widgets/forms/custom_button.dart';
+import '../../common/widgets/forms/custom_text_field.dart';
+import '../../common/widgets/forms/custom_button.dart';
 import 'otp_verification_screen.dart';
 import 'sign_in_screen.dart';
 

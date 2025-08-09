@@ -6,9 +6,9 @@ import '../../../core/constants/app_theme.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../core/validators/form_validators.dart';
-import '../../../general_lib/widgets/forms/custom_text_field.dart';
-import '../../../general_lib/widgets/forms/custom_button.dart';
-import '../../../general_lib/widgets/biometric_login_button.dart';
+import '../../common/widgets/forms/custom_text_field.dart';
+import '../../common/widgets/forms/custom_button.dart';
+import '../widgets/biometric_login_button.dart';
 import '../../home/screen/home_screen.dart';
 
 class SignInScreen extends StatefulWidget {
