@@ -206,17 +206,12 @@ class DestinationSelectionController extends ChangeNotifier {
         // Get fare estimate
         FareEstimateResponse? fareEstimate;
         if (originLatLng != null) {
-          try {
-            fareEstimate = await FareEstimateService.getFareEstimate(
-              pickupLat: originLatLng.latitude,
-              pickupLng: originLatLng.longitude,
-              destLat: destinationLatLng.latitude,
-              destLng: destinationLatLng.longitude,
-            );
-          } catch (e) {
-            print('Error getting fare estimate: $e');
-            // Continue without fare estimate
-          }
+          fareEstimate = await FareEstimateService.getFareEstimate(
+            pickupLat: originLatLng.latitude,
+            pickupLng: originLatLng.longitude,
+            destLat: destinationLatLng.latitude,
+            destLng: destinationLatLng.longitude,
+          );
         }
 
         // Hide loading indicator
@@ -305,8 +300,6 @@ class DestinationSelectionController extends ChangeNotifier {
           final destinationDetail = destinationResponse.data.first;
           destinationLatLng =
               LatLng(destinationDetail.lat, destinationDetail.lng);
-
-          // Lưu điểm đến vào cache với thông tin chính xác từ API
           final destination = RecentDestination(
             name: destinationDetail.name,
             address: destinationDetail.address,
@@ -315,8 +308,7 @@ class DestinationSelectionController extends ChangeNotifier {
             timestamp: DateTime.now(),
           );
           await RecentDestinationsService.addRecentDestination(destination);
-          print(
-              'Đã lưu điểm đến vào cache: ${destination.name} (${destination.latitude}, ${destination.longitude})');
+        
         }
 
         // Get origin coordinates based on whether user modified the input
@@ -370,17 +362,14 @@ class DestinationSelectionController extends ChangeNotifier {
         // Get fare estimate
         FareEstimateResponse? fareEstimate;
         if (originLatLng != null && destinationLatLng != null) {
-          try {
+          
             fareEstimate = await FareEstimateService.getFareEstimate(
               pickupLat: originLatLng.latitude,
               pickupLng: originLatLng.longitude,
               destLat: destinationLatLng.latitude,
               destLng: destinationLatLng.longitude,
             );
-          } catch (e) {
-            print('Error getting fare estimate: $e');
-            // Continue without fare estimate
-          }
+
         }
 
         // Hide loading indicator

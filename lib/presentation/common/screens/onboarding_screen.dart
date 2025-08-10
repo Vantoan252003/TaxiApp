@@ -14,7 +14,7 @@ class OnboardingScreen extends StatelessWidget {
     // Navigate to Phone Input screen
     Navigator.of(context).push(
       MaterialPageRoute(
-          builder: (context) => const PhoneInputScreen(prefillPhone: null)),
+          builder: (context) => const PhoneInputScreen()),
     );
   }
 

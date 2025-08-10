@@ -8,7 +8,9 @@ import '../services/check_phone_service.dart';
 import '../services/get_userinfo_service.dart';
 import '../services/biometric_service.dart';
 import '../services/location_cache_service.dart';
+import '../services/biometric_phone_service.dart';
 import '../../data/models/user_model.dart';
+import '../api/api_exception.dart';
 
 enum AuthState { initial, loading, authenticated, unauthenticated, error }
 
@@ -100,7 +102,7 @@ class AuthProvider extends ChangeNotifier {
       _setState(AuthState.initial);
       return exists;
     } catch (e) {
-      _setError(e.toString());
+      _handleApiException(e);
       return false;
     }
   }
@@ -129,7 +131,7 @@ class AuthProvider extends ChangeNotifier {
       );
       _setState(AuthState.initial);
     } catch (e) {
-      _setError(e.toString());
+      _handleApiException(e);
     }
   }
 
@@ -165,7 +167,7 @@ class AuthProvider extends ChangeNotifier {
         }
       }
     } catch (e) {
-      _setError(e.toString());
+      _handleApiException(e);
     }
   }
 
@@ -200,12 +202,24 @@ class AuthProvider extends ChangeNotifier {
         } else {}
 
         _currentUser = user;
+        final biometricEnabled = await isBiometricEnabled();
+        if (biometricEnabled &&
+            user.phoneNumber.isNotEmpty) {
+          String phoneNumber = user.phoneNumber;
+          if (phoneNumber.startsWith('+84')) {
+            phoneNumber = '0${phoneNumber.substring(3)}';
+          } else if (!phoneNumber.startsWith('0')) {
+            phoneNumber = '0$phoneNumber';
+          }
+          await BiometricPhoneService.saveBiometricPhone(phoneNumber);
+        }
+
         _setState(AuthState.authenticated);
       } else {
         _setError('Login failed: No user data received');
       }
     } catch (e) {
-      _setError(e.toString());
+      _handleApiException(e);
     }
   }
 
@@ -237,6 +251,7 @@ class AuthProvider extends ChangeNotifier {
       _setState(AuthState.unauthenticated);
     } else {
       // Nếu chỉ logout tạm thời (giữ dữ liệu cho sinh trắc học), chỉ thay đổi trạng thái
+      // Không xóa số điện thoại đã lưu cho sinh trắc học
       _setState(AuthState.unauthenticated);
     }
   }
@@ -293,7 +308,7 @@ class AuthProvider extends ChangeNotifier {
         return false;
       }
     } catch (e) {
-      _setError('Có lỗi xảy ra: $e');
+      _handleApiException(e);
       return false;
     }
   }
@@ -351,7 +366,7 @@ class AuthProvider extends ChangeNotifier {
         return false;
       }
     } catch (e) {
-      _setError('Có lỗi xảy ra: $e');
+      _handleApiException(e);
       return false;
     }
   }
@@ -389,8 +404,6 @@ class AuthProvider extends ChangeNotifier {
         final userJson = jsonDecode(userString);
 
         final user = UserModel.fromJson(userJson);
-
-        // Load accessToken from separate storage and assign to user
         final accessToken = prefs.getString(_accessTokenKey);
 
         if (accessToken != null && accessToken.isNotEmpty) {
@@ -429,6 +442,41 @@ class AuthProvider extends ChangeNotifier {
     return prefs.getBool(_biometricEnabledKey) ?? false;
   }
 
+  Future<String?> getBiometricPhone() async {
+    final phone = await BiometricPhoneService.getBiometricPhone();
+    return phone;
+  }
+
+  /// Lưu số điện thoại từ form đăng nhập cho sinh trắc học
+  Future<void> savePhoneFromLoginForm(String phoneNumber) async {
+    final biometricEnabled = await isBiometricEnabled();
+    if (biometricEnabled && phoneNumber.isNotEmpty) {
+      String formattedPhone = phoneNumber;
+      // Chuyển đổi định dạng số điện thoại về dạng 0xxx
+      if (formattedPhone.startsWith('+84')) {
+        formattedPhone = '0${formattedPhone.substring(3)}';
+      } else if (!formattedPhone.startsWith('0')) {
+        formattedPhone = '0$formattedPhone';
+      }
+      await BiometricPhoneService.saveBiometricPhone(formattedPhone);
+    } else {
+    }
+  }
+
+  /// Lưu số điện thoại cho sinh trắc học (không kiểm tra biometricEnabled)
+  Future<void> savePhoneForBiometric(String phoneNumber) async {
+    if (phoneNumber.isNotEmpty) {
+      String formattedPhone = phoneNumber;
+      // Chuyển đổi định dạng số điện thoại về dạng 0xxx
+      if (formattedPhone.startsWith('+84')) {
+        formattedPhone = '0${formattedPhone.substring(3)}';
+      } else if (!formattedPhone.startsWith('0')) {
+        formattedPhone = '0$formattedPhone';
+      }
+      await BiometricPhoneService.saveBiometricPhone(formattedPhone);
+    }
+  }
+
   Future<bool> enableBiometric() async {
     try {
       // Kiểm tra xem thiết bị có hỗ trợ sinh trắc học không
@@ -447,6 +495,29 @@ class AuthProvider extends ChangeNotifier {
         // Lưu trạng thái bật sinh trắc học
         final prefs = await SharedPreferences.getInstance();
         await prefs.setBool(_biometricEnabledKey, true);
+
+        // Lưu số điện thoại của người dùng hiện tại cho sinh trắc học
+        if (_currentUser?.phoneNumber != null &&
+            _currentUser!.phoneNumber.isNotEmpty) {
+          String phoneNumber = _currentUser!.phoneNumber;
+          // Chuyển đổi định dạng số điện thoại về dạng 0xxx
+          if (phoneNumber.startsWith('+84')) {
+            phoneNumber = '0${phoneNumber.substring(3)}';
+          } else if (!phoneNumber.startsWith('0')) {
+            phoneNumber = '0$phoneNumber';
+          }
+          await BiometricPhoneService.saveBiometricPhone(phoneNumber);
+        } else {
+          // Thử lấy số điện thoại từ SharedPreferences nếu có
+          final storedPhone = await BiometricPhoneService.getBiometricPhone();
+          if (storedPhone != null && storedPhone.isNotEmpty) {
+          } else {
+  
+            // Thử lấy số điện thoại từ form đăng nhập nếu có
+            await BiometricPhoneService.getBiometricPhone();
+          }
+        }
+
         return true;
       } else {
         throw Exception('Xác thực sinh trắc học thất bại - Vui lòng thử lại');
@@ -459,6 +530,8 @@ class AuthProvider extends ChangeNotifier {
   Future<void> disableBiometric() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_biometricEnabledKey, false);
+    // Xóa số điện thoại đã lưu cho sinh trắc học
+    await BiometricPhoneService.clearBiometricPhone();
   }
 
   Future<bool> authenticateWithBiometric() async {
@@ -517,5 +590,19 @@ class AuthProvider extends ChangeNotifier {
     _state = AuthState.error;
     _errorMessage = error;
     notifyListeners();
+  }
+
+  // Helper method to handle ApiException
+  void _handleApiException(dynamic error) {
+    if (error is ApiException) {
+      final responseMessage = error.responseMessage;
+      if (responseMessage != null) {
+        _setError(responseMessage);
+      } else {
+        _setError(error.message);
+      }
+    } else {
+      _setError(error.toString());
+    }
   }
 }

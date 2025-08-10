@@ -100,7 +100,11 @@ class ApiClient {
       }
       return jsonDecode(response.body);
     } else {
-      throw ApiException(_getErrorMessage(response));
+      throw ApiException(
+        _getErrorMessage(response),
+        statusCode: response.statusCode,
+        data: _parseResponseBody(response.body),
+      );
     }
   }
 
@@ -110,6 +114,8 @@ class ApiClient {
       return 'Lỗi kết nối. Vui lòng kiểm tra internet và thử lại.';
     } else if (error.toString().contains('TimeoutException')) {
       return 'Kết nối bị timeout. Vui lòng thử lại.';
+    } else if (error is ApiException) {
+      return error.message;
     } else {
       return 'Đã xảy ra lỗi không xác định. Vui lòng thử lại.';
     }
@@ -118,27 +124,62 @@ class ApiClient {
   // Get error message from response
   static String _getErrorMessage(http.Response response) {
     try {
-      final body = jsonDecode(response.body);
-      if (body is Map && body.containsKey('message')) {
-        return body['message'];
+      final body = _parseResponseBody(response.body);
+
+      // Ưu tiên lấy message từ response body
+      if (body is Map) {
+        // Kiểm tra các trường message có thể có
+        if (body.containsKey('message') && body['message'] != null) {
+          final message = body['message'].toString();
+          return message;
+        }
+
+        if (body.containsKey('errors') && body['errors'] is List) {
+          final errors = body['errors'] as List;
+          if (errors.isNotEmpty) {
+            final firstError = errors.first;
+            if (firstError is Map && firstError.containsKey('message')) {
+              final errorMessage = firstError['message'].toString();
+              return errorMessage;
+            } else if (firstError is String) {
+              return firstError;
+            }
+          }
+        }
+    
       }
     } catch (e) {
-      // If can't decode response, use default messages
+      // print('Error parsing response body: $e'); // Removed debug print
+      // Nếu không parse được response body, sử dụng default messages
     }
 
+    // Fallback to status code based messages
     switch (response.statusCode) {
       case 400:
         return 'Dữ liệu không hợp lệ.';
       case 401:
-        return 'Không có quyền truy cập.';
+        return 'Thông tin đăng nhập không chính xác.';
       case 403:
         return 'Bị cấm truy cập.';
       case 404:
         return 'Không tìm thấy tài nguyên.';
+      case 422:
+        return 'Dữ liệu không hợp lệ.';
       case 500:
         return 'Lỗi máy chủ. Vui lòng thử lại sau.';
       default:
         return 'Đã xảy ra lỗi. Vui lòng thử lại.';
+    }
+  }
+
+  // Parse response body safely
+  static dynamic _parseResponseBody(String body) {
+    if (body.isEmpty) return null;
+
+    try {
+      return jsonDecode(body);
+    } catch (e) {
+      return body; // Return raw body if can't decode
     }
   }
 }

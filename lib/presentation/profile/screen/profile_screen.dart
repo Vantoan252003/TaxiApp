@@ -119,20 +119,6 @@ class ProfileScreen extends StatelessWidget {
       // Use AuthProvider instead of AuthService
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
-      // Lấy số điện thoại của người dùng hiện tại trước khi logout
-      String? userPhone;
-      if (authProvider.currentUser != null) {
-        userPhone = authProvider.currentUser!.phoneNumber;
-        // Nếu số điện thoại có định dạng +84, chuyển về 0
-        if (userPhone.startsWith('+84')) {
-          userPhone = '0${userPhone.substring(3)}';
-        }
-        // Nếu số điện thoại không có 0 ở đầu, thêm vào
-        if (!userPhone.startsWith('0')) {
-          userPhone = '0$userPhone';
-        }
-      }
-
       // Kiểm tra xem sinh trắc học có được bật không
       final isBiometricEnabled = await authProvider.isBiometricEnabled();
 
@@ -147,10 +133,10 @@ class ProfileScreen extends StatelessWidget {
       if (context.mounted) {
         Navigator.of(context).pop(); // Close loading dialog
 
-        // Điều hướng đến trang đăng nhập với số điện thoại được điền sẵn
+        // Điều hướng đến trang đăng nhập (số điện thoại sẽ được tự động điền từ biometric service)
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(
-            builder: (context) => SignInScreen(prefillPhone: userPhone),
+            builder: (context) => const SignInScreen(),
           ),
           (route) => false,
         );

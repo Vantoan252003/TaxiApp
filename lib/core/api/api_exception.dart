@@ -9,6 +9,28 @@ class ApiException implements Exception {
     this.data,
   });
 
+  // Getter để truy cập message từ response data
+  String? get responseMessage {
+    if (data is Map) {
+      final body = data as Map;
+
+      if (body.containsKey('message') && body['message'] != null) {
+        return body['message'].toString();
+      }
+      if (body.containsKey('error') && body['error'] != null) {
+        return body['error'].toString();
+      }
+      if (body.containsKey('msg') && body['msg'] != null) {
+        return body['msg'].toString();
+      }
+    }
+
+    return null;
+  }
+
+  // Getter để kiểm tra có phải lỗi đăng nhập không
+  bool get isAuthError => statusCode == 401 || statusCode == 403;
+
   @override
   String toString() => message;
 }

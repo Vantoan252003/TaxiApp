@@ -31,7 +31,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
         }
 
         // Show phone input screen if not authenticated
-        return const PhoneInputScreen(prefillPhone: null);
+        return const PhoneInputScreen();
       },
     );
   }
