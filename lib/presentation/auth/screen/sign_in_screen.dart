@@ -152,13 +152,13 @@ class _SignInScreenState extends State<SignInScreen> {
                       text: 'Đăng nhập',
                       width: double.infinity,
                       isLoading: authProvider.isLoading,
-                     onPressed: () => HandleSignIn.handleSignIn(
-    authProvider: authProvider,
-    context: context,
-    formKey: _formKey,
-    emailOrPhoneController: _emailOrPhoneController,
-    passwordController: _passwordController,
-  ),
+                      onPressed: () => HandleSignIn.handleSignIn(
+                        authProvider: authProvider,
+                        context: context,
+                        formKey: _formKey,
+                        emailOrPhoneController: _emailOrPhoneController,
+                        passwordController: _passwordController,
+                      ),
                     ),
 
                     const SizedBox(height: 20),

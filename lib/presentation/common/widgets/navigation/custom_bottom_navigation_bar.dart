@@ -96,5 +96,4 @@ class CustomBottomNavigationBar extends StatelessWidget {
       ),
     );
   }
-
 }

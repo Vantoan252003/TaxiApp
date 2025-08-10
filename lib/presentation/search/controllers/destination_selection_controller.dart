@@ -4,6 +4,7 @@ import '../../../core/services/location_cache_service.dart';
 import '../../../core/services/location_service.dart';
 import '../../../core/services/service_locator.dart';
 import '../../../core/services/fare_estimate_service.dart';
+import '../../../core/services/recent_destinations_service.dart';
 import '../../../core/providers/place_provider.dart';
 import '../../../data/models/fare_estimate_model.dart';
 import '../../../domain/usecase/place_usecases.dart';
@@ -130,6 +131,134 @@ class DestinationSelectionController extends ChangeNotifier {
     }
   }
 
+  Future<void> navigateToRideScreenWithCoordinates(
+    BuildContext context,
+    LatLng destinationLatLng,
+  ) async {
+    if (originController.text.isNotEmpty &&
+        originController.text.trim().isNotEmpty &&
+        destinationController.text.isNotEmpty &&
+        destinationController.text.trim().isNotEmpty) {
+      try {
+        // Show loading indicator
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          },
+        );
+
+        LatLng? originLatLng;
+
+        // Get origin coordinates based on whether user modified the input
+        if (originController.text.trim() == _initialOriginText.trim()) {
+          // User didn't modify origin - use current GPS location
+          try {
+            final currentPosition = await LocationService.getCurrentPosition();
+            if (currentPosition != null) {
+              originLatLng =
+                  LatLng(currentPosition.latitude, currentPosition.longitude);
+            } else {
+              originLatLng = const LatLng(10.762317, 106.654551);
+            }
+          } catch (e) {
+            originLatLng = const LatLng(10.762317, 106.654551);
+          }
+        } else if (_originRefId != null && _originRefId!.isNotEmpty) {
+          // User selected a place - get coordinates from API
+          try {
+            final getPlaceDetailUseCase =
+                ServiceLocator.instance.get<GetPlaceDetailUseCase>();
+            final originResponse =
+                await getPlaceDetailUseCase.execute(_originRefId!);
+            if (originResponse.success && originResponse.data.isNotEmpty) {
+              final originDetail = originResponse.data.first;
+              originLatLng = LatLng(originDetail.lat, originDetail.lng);
+            }
+          } catch (e) {
+            // Use default origin coordinates as fallback
+            originLatLng = const LatLng(10.762317, 106.654551);
+          }
+        } else {
+          // Check if origin is current location
+          if (originController.text.trim() == "Vị trí hiện tại") {
+            try {
+              // Get current location coordinates from cache
+              final cachedCoords =
+                  await LocationCacheService.getCachedCoordinates();
+              if (cachedCoords != null) {
+                originLatLng =
+                    LatLng(cachedCoords['lat']!, cachedCoords['lng']!);
+              } else {
+                originLatLng = const LatLng(10.762317, 106.654551);
+              }
+            } catch (e) {
+              originLatLng = const LatLng(10.762317, 106.654551);
+            }
+          } else {
+            originLatLng = const LatLng(10.762317, 106.654551);
+          }
+        }
+
+        // Get fare estimate
+        FareEstimateResponse? fareEstimate;
+        if (originLatLng != null) {
+          try {
+            fareEstimate = await FareEstimateService.getFareEstimate(
+              pickupLat: originLatLng.latitude,
+              pickupLng: originLatLng.longitude,
+              destLat: destinationLatLng.latitude,
+              destLng: destinationLatLng.longitude,
+            );
+          } catch (e) {
+            print('Error getting fare estimate: $e');
+            // Continue without fare estimate
+          }
+        }
+
+        // Hide loading indicator
+        if (context.mounted) {
+          Navigator.pop(context);
+        }
+
+        // Navigate to ride screen with coordinates and fare estimate
+        if (context.mounted) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => RideScreen(
+                origin: originController.text.trim(),
+                destination: destinationController.text.trim(),
+                originLatLng: originLatLng,
+                destinationLatLng: destinationLatLng,
+                fareEstimate: fareEstimate,
+              ),
+            ),
+          );
+        }
+      } catch (e) {
+        // Hide loading indicator
+        if (context.mounted) {
+          Navigator.pop(context);
+        }
+
+        // Show error message
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Không thể lấy thông tin địa điểm: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+        navigateToRideScreen(context);
+      }
+    }
+  }
+
   Future<void> navigateToRideScreenWithPlaceDetails(
     BuildContext context,
     String destinationRefId,
@@ -176,6 +305,18 @@ class DestinationSelectionController extends ChangeNotifier {
           final destinationDetail = destinationResponse.data.first;
           destinationLatLng =
               LatLng(destinationDetail.lat, destinationDetail.lng);
+
+          // Lưu điểm đến vào cache với thông tin chính xác từ API
+          final destination = RecentDestination(
+            name: destinationDetail.name,
+            address: destinationDetail.address,
+            latitude: destinationDetail.lat,
+            longitude: destinationDetail.lng,
+            timestamp: DateTime.now(),
+          );
+          await RecentDestinationsService.addRecentDestination(destination);
+          print(
+              'Đã lưu điểm đến vào cache: ${destination.name} (${destination.latitude}, ${destination.longitude})');
         }
 
         // Get origin coordinates based on whether user modified the input

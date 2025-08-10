@@ -130,9 +130,7 @@ class _MapSectionWidgetState extends State<MapSectionWidget> {
 
     _polylineTimer =
         Timer.periodic(const Duration(milliseconds: 30), (timer) async {
-      // ✅ FIX: Đảm bảo vẽ đến điểm cuối cùng
       if (_polylineIndex >= _routePoints.length) {
-        // Vẽ toàn bộ route một lần cuối để đảm bảo
         await _drawPolyline(_routePoints);
         timer.cancel();
         return;
@@ -141,10 +139,7 @@ class _MapSectionWidgetState extends State<MapSectionWidget> {
       final subList = _routePoints.sublist(0, _polylineIndex);
       await _drawPolyline(subList);
 
-      // ✅ FIX: Tăng từng điểm một để chính xác hơn
-      _polylineIndex += 5; // Giảm từ 10 xuống 5 để mượt hơn
-
-      // ✅ FIX: Nếu gần cuối thì nhảy đến cuối
+      _polylineIndex += 2;
       if (_polylineIndex >= _routePoints.length - 5) {
         _polylineIndex = _routePoints.length;
       }
@@ -153,20 +148,37 @@ class _MapSectionWidgetState extends State<MapSectionWidget> {
 
   Future<void> _drawPolyline(List<LatLng> points) async {
     if (_mapController == null) return;
-    if (_routeLine != null) {
-      await _mapController!.removePolyline(_routeLine!);
+
+    if (_routeLine == null) {
+      _routeLine = await _mapController!.addPolyline(
+        PolylineOptions(
+          geometry: points,
+          polylineColor: Colors.blueAccent,
+          polylineOpacity: 0.9, // hơi trong suốt
+          polylineWidth: 6.0, // to vừa phải
+          polylineBlur: 0.5, // viền mờ nhẹ
+          polylineJoin: "round", // bo tròn góc
+        ),
+      );
+    } else {
+      await _mapController!.updatePolyline(
+        _routeLine!,
+        PolylineOptions(
+          geometry: points,
+        ),
+      );
     }
-    _routeLine = await _mapController!.addPolyline(
-      PolylineOptions(
-        geometry: points,
-        polylineColor: Colors.blue,
-        polylineWidth: 6.0,
-      ),
-    );
   }
 
   void _fitCameraToPolyline(List<LatLng> points) {
     if (_mapController == null || points.isEmpty) return;
+
+    if (points.length == 1) {
+      _mapController!.animateCamera(
+        CameraUpdate.newLatLngZoom(points.first, 15),
+      );
+      return;
+    }
 
     double minLat = points.map((p) => p.latitude).reduce(min);
     double maxLat = points.map((p) => p.latitude).reduce(max);
@@ -178,8 +190,10 @@ class _MapSectionWidgetState extends State<MapSectionWidget> {
       northeast: LatLng(maxLat, maxLng),
     );
 
-    _mapController!.animateCamera(CameraUpdate.newLatLngBounds(bounds,
-        left: 50, top: 150, right: 50, bottom: 300));
+    _mapController!.animateCamera(
+      CameraUpdate.newLatLngBounds(bounds,
+          left: 50, top: 50, right: 50, bottom: 450),
+    );
   }
 
   List<LatLng> _extractRoutePointsFromModel(dynamic model) {

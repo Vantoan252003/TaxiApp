@@ -128,7 +128,7 @@ class ProfileScreen extends StatelessWidget {
           userPhone = '0${userPhone.substring(3)}';
         }
         // Nếu số điện thoại không có 0 ở đầu, thêm vào
-        if ( !userPhone.startsWith('0')) {
+        if (!userPhone.startsWith('0')) {
           userPhone = '0$userPhone';
         }
       }

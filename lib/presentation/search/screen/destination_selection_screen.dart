@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:vietmap_flutter_gl/vietmap_flutter_gl.dart';
 import '../../../core/providers/place_provider.dart';
 import '../controllers/destination_selection_controller.dart';
 import '../widgets/index.dart';
@@ -27,6 +28,13 @@ class _DestinationSelectionScreenState
   void dispose() {
     _controller.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Refresh dữ liệu điểm đi gần đây khi quay lại màn hình
+    // Sẽ được xử lý tự động trong PopularDestinationsSection
   }
 
   @override
@@ -170,15 +178,28 @@ class _DestinationSelectionScreenState
 
                         // Popular destinations
                         PopularDestinationsSection(
-                          onDestinationSelected: (destination) {
+                          onDestinationSelected:
+                              (destination, latitude, longitude) {
                             _controller.destinationController.text =
                                 destination;
                             _controller.setDestinationFocused(false);
+
                             if (_controller.originController.text.isNotEmpty &&
                                 _controller.originController.text
                                     .trim()
                                     .isNotEmpty) {
-                              _controller.navigateToRideScreen(context);
+                              // Nếu có thông tin lat/lng từ cache, sử dụng để tạo LatLng
+                              if (latitude != null && longitude != null) {
+                                final destinationLatLng =
+                                    LatLng(latitude, longitude);
+                                _controller.navigateToRideScreenWithCoordinates(
+                                  context,
+                                  destinationLatLng,
+                                );
+                              } else {
+                                // Fallback về navigation thông thường nếu không có lat/lng
+                                _controller.navigateToRideScreen(context);
+                              }
                             }
                           },
                           onGetCurrentLocation:
