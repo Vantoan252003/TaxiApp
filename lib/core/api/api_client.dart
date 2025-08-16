@@ -13,7 +13,7 @@ class ApiClient {
   };
 
   // GET request
-  static Future<Map<String, dynamic>> get(
+  static Future<dynamic> get(
     String endpoint, {
     Map<String, String>? headers,
   }) async {
@@ -93,12 +93,16 @@ class ApiClient {
   }
 
   // Handle response
-  static Map<String, dynamic> _handleResponse(http.Response response) {
+  static dynamic _handleResponse(http.Response response) {
     if (response.statusCode >= 200 && response.statusCode < 300) {
       if (response.body.isEmpty) {
         return {};
       }
-      return jsonDecode(response.body);
+      try {
+        return jsonDecode(response.body);
+      } catch (e) {
+        throw ApiException('Invalid JSON response: $e');
+      }
     } else {
       throw ApiException(
         _getErrorMessage(response),

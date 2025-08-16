@@ -5,8 +5,10 @@ import '../../../core/services/location_service.dart';
 import '../../../core/services/service_locator.dart';
 import '../../../core/services/fare_estimate_service.dart';
 import '../../../core/services/recent_destinations_service.dart';
+import '../../../core/services/driver_service.dart';
 import '../../../core/providers/place_provider.dart';
 import '../../../data/models/fare_estimate_model.dart';
+import '../../../data/models/driver_model.dart';
 import '../../../domain/usecase/place_usecases.dart';
 import '../../booking/page/booking_screen.dart';
 
@@ -19,18 +21,22 @@ class DestinationSelectionController extends ChangeNotifier {
   bool _isOriginFocused = false;
   bool _isLoadingCurrentLocation = true;
   bool _isGettingCurrentLocation = false;
+  bool _isLoadingDrivers = false;
   String _lastFocusedField = 'origin';
   String? _originRefId;
   String _initialOriginText = '';
+  List<DriverModel> _nearbyDrivers = [];
 
   // Getters
   bool get isDestinationFocused => _isDestinationFocused;
   bool get isOriginFocused => _isOriginFocused;
   bool get isLoadingCurrentLocation => _isLoadingCurrentLocation;
   bool get isGettingCurrentLocation => _isGettingCurrentLocation;
+  bool get isLoadingDrivers => _isLoadingDrivers;
   String get lastFocusedField => _lastFocusedField;
   String? get originRefId => _originRefId;
   String get initialOriginText => _initialOriginText;
+  List<DriverModel> get nearbyDrivers => _nearbyDrivers;
 
   @override
   void dispose() {
@@ -140,7 +146,6 @@ class DestinationSelectionController extends ChangeNotifier {
         destinationController.text.isNotEmpty &&
         destinationController.text.trim().isNotEmpty) {
       try {
-        // Show loading indicator
         showDialog(
           context: context,
           barrierDismissible: false,
@@ -153,9 +158,7 @@ class DestinationSelectionController extends ChangeNotifier {
 
         LatLng? originLatLng;
 
-        // Get origin coordinates based on whether user modified the input
         if (originController.text.trim() == _initialOriginText.trim()) {
-          // User didn't modify origin - use current GPS location
           try {
             final currentPosition = await LocationService.getCurrentPosition();
             if (currentPosition != null) {
@@ -179,31 +182,27 @@ class DestinationSelectionController extends ChangeNotifier {
               originLatLng = LatLng(originDetail.lat, originDetail.lng);
             }
           } catch (e) {
-            // Use default origin coordinates as fallback
-            originLatLng = const LatLng(10.762317, 106.654551);
+            originLatLng = null;
           }
         } else {
-          // Check if origin is current location
           if (originController.text.trim() == "Vị trí hiện tại") {
             try {
-              // Get current location coordinates from cache
               final cachedCoords =
                   await LocationCacheService.getCachedCoordinates();
               if (cachedCoords != null) {
                 originLatLng =
                     LatLng(cachedCoords['lat']!, cachedCoords['lng']!);
               } else {
-                originLatLng = const LatLng(10.762317, 106.654551);
+                originLatLng = null;
               }
             } catch (e) {
-              originLatLng = const LatLng(10.762317, 106.654551);
+              originLatLng = null;
             }
           } else {
-            originLatLng = const LatLng(10.762317, 106.654551);
+            originLatLng = null;
           }
         }
 
-        // Get fare estimate
         FareEstimateResponse? fareEstimate;
         if (originLatLng != null) {
           fareEstimate = await FareEstimateService.getFareEstimate(
@@ -219,7 +218,20 @@ class DestinationSelectionController extends ChangeNotifier {
           Navigator.pop(context);
         }
 
-        // Navigate to ride screen with coordinates and fare estimate
+        // Find nearby drivers before navigating
+        List<DriverModel> nearbyDrivers = [];
+        if (originLatLng != null) {
+          try {
+            nearbyDrivers = await DriverService.findNearbyMotorcycles(
+              lat: originLatLng.latitude,
+              lng: originLatLng.longitude,
+              radiusMeters: 3000,
+            );
+          } catch (e) {
+            // Silently handle error
+          }
+        }
+
         if (context.mounted) {
           Navigator.push(
             context,
@@ -230,6 +242,7 @@ class DestinationSelectionController extends ChangeNotifier {
                 originLatLng: originLatLng,
                 destinationLatLng: destinationLatLng,
                 fareEstimate: fareEstimate,
+                nearbyDrivers: nearbyDrivers,
               ),
             ),
           );
@@ -264,7 +277,6 @@ class DestinationSelectionController extends ChangeNotifier {
         destinationController.text.isNotEmpty &&
         destinationController.text.trim().isNotEmpty) {
       try {
-        // Show loading indicator
         showDialog(
           context: context,
           barrierDismissible: false,
@@ -275,7 +287,6 @@ class DestinationSelectionController extends ChangeNotifier {
           },
         );
 
-        // Get origin refId from stored value or search results
         String? originRefId = _originRefId;
         if (originRefId == null && context.mounted) {
           for (final place in placeProvider.searchResults) {
@@ -292,7 +303,6 @@ class DestinationSelectionController extends ChangeNotifier {
         LatLng? originLatLng;
         LatLng? destinationLatLng;
 
-        // Get destination coordinates
         final destinationResponse =
             await getPlaceDetailUseCase.execute(destinationRefId);
         if (destinationResponse.success &&
@@ -308,25 +318,22 @@ class DestinationSelectionController extends ChangeNotifier {
             timestamp: DateTime.now(),
           );
           await RecentDestinationsService.addRecentDestination(destination);
-        
         }
 
         // Get origin coordinates based on whether user modified the input
         if (originController.text.trim() == _initialOriginText.trim()) {
-          // User didn't modify origin - use current GPS location
           try {
             final currentPosition = await LocationService.getCurrentPosition();
             if (currentPosition != null) {
               originLatLng =
                   LatLng(currentPosition.latitude, currentPosition.longitude);
             } else {
-              originLatLng = const LatLng(10.762317, 106.654551);
+              originLatLng = null;
             }
           } catch (e) {
-            originLatLng = const LatLng(10.762317, 106.654551);
+            originLatLng = null;
           }
         } else if (originRefId != null && originRefId.isNotEmpty) {
-          // User selected a place - get coordinates from API
           try {
             final originResponse =
                 await getPlaceDetailUseCase.execute(originRefId);
@@ -335,41 +342,35 @@ class DestinationSelectionController extends ChangeNotifier {
               originLatLng = LatLng(originDetail.lat, originDetail.lng);
             }
           } catch (e) {
-            // Use default origin coordinates as fallback
-            originLatLng = const LatLng(10.762317, 106.654551);
+            originLatLng = null;
           }
         } else {
-          // Check if origin is current location
           if (originController.text.trim() == "Vị trí hiện tại") {
             try {
-              // Get current location coordinates from cache
               final cachedCoords =
                   await LocationCacheService.getCachedCoordinates();
               if (cachedCoords != null) {
                 originLatLng =
                     LatLng(cachedCoords['lat']!, cachedCoords['lng']!);
               } else {
-                originLatLng = const LatLng(10.762317, 106.654551);
+                originLatLng = null;
               }
             } catch (e) {
-              originLatLng = const LatLng(10.762317, 106.654551);
+              originLatLng = null;
             }
           } else {
-            originLatLng = const LatLng(10.762317, 106.654551);
+            originLatLng = null;
           }
         }
 
-        // Get fare estimate
         FareEstimateResponse? fareEstimate;
         if (originLatLng != null && destinationLatLng != null) {
-          
-            fareEstimate = await FareEstimateService.getFareEstimate(
-              pickupLat: originLatLng.latitude,
-              pickupLng: originLatLng.longitude,
-              destLat: destinationLatLng.latitude,
-              destLng: destinationLatLng.longitude,
-            );
-
+          fareEstimate = await FareEstimateService.getFareEstimate(
+            pickupLat: originLatLng.latitude,
+            pickupLng: originLatLng.longitude,
+            destLat: destinationLatLng.latitude,
+            destLng: destinationLatLng.longitude,
+          );
         }
 
         // Hide loading indicator
@@ -378,7 +379,20 @@ class DestinationSelectionController extends ChangeNotifier {
         }
 
         if (destinationLatLng != null) {
-          // Navigate to ride screen with both coordinates and fare estimate
+          // Find nearby drivers before navigating
+          List<DriverModel> nearbyDrivers = [];
+          if (originLatLng != null) {
+            try {
+              nearbyDrivers = await DriverService.findNearbyMotorcycles(
+                lat: originLatLng.latitude,
+                lng: originLatLng.longitude,
+                radiusMeters: 3000,
+              );
+            } catch (e) {
+              // Silently handle error
+            }
+          }
+
           if (context.mounted) {
             Navigator.push(
               context,
@@ -389,12 +403,12 @@ class DestinationSelectionController extends ChangeNotifier {
                   originLatLng: originLatLng,
                   destinationLatLng: destinationLatLng,
                   fareEstimate: fareEstimate,
+                  nearbyDrivers: nearbyDrivers,
                 ),
               ),
             );
           }
         } else {
-          // Fallback to regular navigation if destination API fails
           navigateToRideScreen(context);
         }
       } catch (e) {
@@ -436,11 +450,58 @@ class DestinationSelectionController extends ChangeNotifier {
       originController.text = place.name;
       _originRefId = place.refId;
       setOriginFocused(false);
-      // Auto focus destination after selecting origin
       WidgetsBinding.instance.addPostFrameCallback((_) {
         setDestinationFocused(true);
         scrollToTop();
       });
     }
+  }
+
+  /// Find nearby drivers based on current location
+  Future<void> findNearbyDrivers() async {
+    _isLoadingDrivers = true;
+    notifyListeners();
+
+    try {
+      final currentPosition = await LocationService.getCurrentPosition();
+      if (currentPosition != null) {
+        final drivers = await DriverService.findNearbyMotorcycles(
+          lat: currentPosition.latitude,
+          lng: currentPosition.longitude,
+          radiusMeters: 3000,
+        );
+        _nearbyDrivers = drivers;
+      }
+    } catch (e) {
+      _nearbyDrivers = [];
+    } finally {
+      _isLoadingDrivers = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> findNearbyDriversAtLocation(double lat, double lng) async {
+    _isLoadingDrivers = true;
+    notifyListeners();
+
+    try {
+      final drivers = await DriverService.findNearbyMotorcycles(
+        lat: lat,
+        lng: lng,
+        radiusMeters: 3000,
+      );
+      _nearbyDrivers = drivers;
+    } catch (e) {
+      _nearbyDrivers = [];
+    } finally {
+      _isLoadingDrivers = false;
+      notifyListeners();
+    }
+  }
+
+  /// Clear nearby drivers list
+  void clearNearbyDrivers() {
+    _nearbyDrivers = [];
+    notifyListeners();
   }
 }

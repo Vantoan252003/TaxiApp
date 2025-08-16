@@ -31,4 +31,5 @@ class ApiEndpoints {
   static const String place = '/location/place';
   static const String route = '/location/route';
   static const String estimate = '/fare/estimate';
+  static const String findNearby = '/drivers/nearby';
 }

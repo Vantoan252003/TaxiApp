@@ -3,7 +3,9 @@ import 'package:vietmap_flutter_gl/vietmap_flutter_gl.dart';
 import '../widgets/floating_address_widget.dart';
 import '../widgets/ride_options_panel.dart';
 import '../widgets/map_section_widget.dart';
+import '../widgets/driver_info_overlay.dart';
 import '../../../data/models/fare_estimate_model.dart';
+import '../../../data/models/driver_model.dart';
 
 class RideScreen extends StatefulWidget {
   final String origin;
@@ -12,6 +14,7 @@ class RideScreen extends StatefulWidget {
   final LatLng? originLatLng;
   final LatLng? destinationLatLng;
   final FareEstimateResponse? fareEstimate;
+  final List<DriverModel>? nearbyDrivers;
 
   const RideScreen({
     super.key,
@@ -21,6 +24,7 @@ class RideScreen extends StatefulWidget {
     this.originLatLng,
     this.destinationLatLng,
     this.fareEstimate,
+    this.nearbyDrivers,
   });
 
   @override
@@ -52,6 +56,23 @@ class _RideScreenState extends State<RideScreen> {
       // If no fare estimate, set to empty string to prevent selection
       _selectedVehicleType = '';
     }
+
+    // Debug: Print driver information
+    print('🚗 RideScreen initialized:');
+    print('   Origin: ${widget.origin}');
+    print('   Destination: ${widget.destination}');
+    print(
+        '   Origin LatLng: ${_originLatLng.latitude}, ${_originLatLng.longitude}');
+    print(
+        '   Destination LatLng: ${_destinationLatLng.latitude}, ${_destinationLatLng.longitude}');
+    print('   Nearby drivers: ${widget.nearbyDrivers?.length ?? 0}');
+    if (widget.nearbyDrivers != null && widget.nearbyDrivers!.isNotEmpty) {
+      for (int i = 0; i < widget.nearbyDrivers!.length; i++) {
+        final driver = widget.nearbyDrivers![i];
+        print(
+            '   Driver $i: ${driver.userId} at ${driver.latitude}, ${driver.longitude}');
+      }
+    }
   }
 
   String _mapVehicleTypeToId(String vehicleType) {
@@ -79,6 +100,7 @@ class _RideScreenState extends State<RideScreen> {
           MapSectionWidget(
             originLatLng: _originLatLng,
             destinationLatLng: _destinationLatLng,
+            nearbyDrivers: widget.nearbyDrivers,
           ),
 
           // Floating address window
@@ -94,6 +116,13 @@ class _RideScreenState extends State<RideScreen> {
               onAddStop: _addStop,
             ),
           ),
+
+          // Driver info overlay
+          if (widget.nearbyDrivers != null)
+            DriverInfoOverlay(
+              drivers: widget.nearbyDrivers!,
+              isLoading: false, // Không loading vì đã có data
+            ),
 
           // Bottom ride options panel
           Positioned(

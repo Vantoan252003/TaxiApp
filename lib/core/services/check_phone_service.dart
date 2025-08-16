@@ -8,7 +8,9 @@ class CheckPhoneService {
         ApiEndpoints.checkPhoneNumber
             .replaceFirst('{phoneNumber}', phoneNumber),
       );
-      if (response['data'] == true) {
+
+      // Xử lý response có thể là Map hoặc List
+      if (response is Map && response['data'] == true) {
         return true;
       }
       return false;

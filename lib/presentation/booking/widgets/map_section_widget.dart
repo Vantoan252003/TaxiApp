@@ -4,15 +4,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:vietmap_flutter_gl/vietmap_flutter_gl.dart';
 import 'package:vietmap_flutter_plugin/vietmap_flutter_plugin.dart';
+import '../../../data/models/driver_model.dart';
+import 'driver_markers_widget.dart';
 
 class MapSectionWidget extends StatefulWidget {
   final LatLng originLatLng;
   final LatLng destinationLatLng;
+  final List<DriverModel>? nearbyDrivers;
+  final bool isLoadingDrivers;
 
   const MapSectionWidget({
     super.key,
     required this.originLatLng,
     required this.destinationLatLng,
+    this.nearbyDrivers,
+    this.isLoadingDrivers = false,
   });
 
   @override
@@ -36,19 +42,31 @@ class _MapSectionWidgetState extends State<MapSectionWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return VietmapGL(
-      styleString:
-          'https://maps.vietmap.vn/api/maps/light/styles.json?apikey=8e17c07d6fd7dacdb1e2e442ba74b4edbf874b863f3ac04d',
-      initialCameraPosition: CameraPosition(
-        target: widget.originLatLng,
-        zoom: 14.0,
-      ),
-      onMapCreated: (controller) async {
-        _mapController = controller;
-      },
-      onStyleLoadedCallback: () async {
-        await _addMarkersAndRoute();
-      },
+    return Stack(
+      children: [
+        VietmapGL(
+          trackCameraPosition: true,
+          styleString:
+              'https://maps.vietmap.vn/api/maps/light/styles.json?apikey=8e17c07d6fd7dacdb1e2e442ba74b4edbf874b863f3ac04d',
+          initialCameraPosition: CameraPosition(
+            target: widget.originLatLng,
+            zoom: 14.0,
+          ),
+          onMapCreated: (controller) async {
+            _mapController = controller;
+            setState(() {});
+          },
+          onStyleLoadedCallback: () async {
+            await _addMarkersAndRoute();
+          },
+        ),
+        if (widget.nearbyDrivers != null && _mapController != null)
+          DriverMarkersWidget(
+            mapController: _mapController,
+            drivers: widget.nearbyDrivers!,
+            isLoading: widget.isLoadingDrivers,
+          ),
+      ],
     );
   }
 
@@ -97,13 +115,10 @@ class _MapSectionWidgetState extends State<MapSectionWidget> {
           _routePoints = [widget.originLatLng, widget.destinationLatLng];
         }
 
-        // ✅ FIX: Đảm bảo điểm cuối là đích đến chính xác
+        // Ensure the last point is the exact destination
         if (_routePoints.isNotEmpty) {
-          // Kiểm tra xem điểm cuối có khác với điểm đích không
           final lastPoint = _routePoints.last;
           final destination = widget.destinationLatLng;
-
-          // Nếu khoảng cách > 10m thì thay thế điểm cuối
           final distance = _calculateDistance(lastPoint, destination);
           if (distance > 0.00009) {
             // ~10 meters in degrees
@@ -117,7 +132,6 @@ class _MapSectionWidgetState extends State<MapSectionWidget> {
     );
   }
 
-  // ✅ FIX: Tính khoảng cách giữa 2 điểm
   double _calculateDistance(LatLng point1, LatLng point2) {
     return sqrt(pow(point1.latitude - point2.latitude, 2) +
         pow(point1.longitude - point2.longitude, 2));
@@ -154,10 +168,10 @@ class _MapSectionWidgetState extends State<MapSectionWidget> {
         PolylineOptions(
           geometry: points,
           polylineColor: Colors.blueAccent,
-          polylineOpacity: 0.9, // hơi trong suốt
-          polylineWidth: 6.0, // to vừa phải
-          polylineBlur: 0.5, // viền mờ nhẹ
-          polylineJoin: "round", // bo tròn góc
+          polylineOpacity: 0.9,
+          polylineWidth: 6.0,
+          polylineBlur: 0.5,
+          polylineJoin: "round",
         ),
       );
     } else {
