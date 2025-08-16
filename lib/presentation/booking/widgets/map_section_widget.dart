@@ -10,10 +10,10 @@ class MapSectionWidget extends StatefulWidget {
   final LatLng destinationLatLng;
 
   const MapSectionWidget({
-    Key? key,
+    super.key,
     required this.originLatLng,
     required this.destinationLatLng,
-  }) : super(key: key);
+  });
 
   @override
   State<MapSectionWidget> createState() => _MapSectionWidgetState();

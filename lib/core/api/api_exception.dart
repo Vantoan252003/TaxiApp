@@ -13,15 +13,8 @@ class ApiException implements Exception {
   String? get responseMessage {
     if (data is Map) {
       final body = data as Map;
-
       if (body.containsKey('message') && body['message'] != null) {
         return body['message'].toString();
-      }
-      if (body.containsKey('error') && body['error'] != null) {
-        return body['error'].toString();
-      }
-      if (body.containsKey('msg') && body['msg'] != null) {
-        return body['msg'].toString();
       }
     }
 

@@ -133,20 +133,6 @@ class ApiClient {
           final message = body['message'].toString();
           return message;
         }
-
-        if (body.containsKey('errors') && body['errors'] is List) {
-          final errors = body['errors'] as List;
-          if (errors.isNotEmpty) {
-            final firstError = errors.first;
-            if (firstError is Map && firstError.containsKey('message')) {
-              final errorMessage = firstError['message'].toString();
-              return errorMessage;
-            } else if (firstError is String) {
-              return firstError;
-            }
-          }
-        }
-    
       }
     } catch (e) {
       // print('Error parsing response body: $e'); // Removed debug print

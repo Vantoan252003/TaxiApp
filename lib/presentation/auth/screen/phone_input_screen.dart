@@ -190,7 +190,7 @@ class _PhoneInputScreenState extends State<PhoneInputScreen> {
           );
           Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (context) => const SignInScreen(),
+              builder: (context) => SignInScreen(prefillPhone: _phoneController.text),
             ),
           );
         } else {

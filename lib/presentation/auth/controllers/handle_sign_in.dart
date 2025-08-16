@@ -25,9 +25,6 @@ class HandleSignIn {
       );
 
       if (authProvider.state == AuthState.authenticated) {
-        // Lưu số điện thoại từ form đăng nhập cho sinh trắc học
-        final originalPhone = emailOrPhoneController.text.trim();
-        await authProvider.savePhoneFromLoginForm(originalPhone);
 
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (context) => const HomeScreen()),

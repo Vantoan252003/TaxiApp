@@ -12,7 +12,8 @@ import '../widgets/biometric_login_button.dart';
 import '../../home/screen/home_screen.dart';
 
 class SignInScreen extends StatefulWidget {
-  const SignInScreen({super.key});
+  final String? prefillPhone;
+  const SignInScreen({super.key, this.prefillPhone});
 
   @override
   State<SignInScreen> createState() => _SignInScreenState();
@@ -31,20 +32,10 @@ class _SignInScreenState extends State<SignInScreen> {
   @override
   void initState() {
     super.initState();
-    _initializePhoneNumber();
-  }
-
-  Future<void> _initializePhoneNumber() async {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final phoneNumber = await authProvider.getBiometricPhone();
-    if (phoneNumber != null && phoneNumber.isNotEmpty) {
-      _emailOrPhoneController.text = phoneNumber;
+    if (widget.prefillPhone != null && widget.prefillPhone!.isNotEmpty) {
+      _emailOrPhoneController.text = widget.prefillPhone!;
     }
-  }
 
-  void _savePhoneForBiometric(String phoneNumber) {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    authProvider.savePhoneForBiometric(phoneNumber);
   }
 
   @override
@@ -107,13 +98,6 @@ class _SignInScreenState extends State<SignInScreen> {
                       validator: (value) => _emailOrPhoneValidator
                           .validate(value ?? '')
                           .errorMessage,
-                      onChanged: (value) {
-                        // Lưu số điện thoại khi người dùng nhập (nếu là số điện thoại)
-                        if (value.isNotEmpty &&
-                            RegExp(r'^0?\d+$').hasMatch(value)) {
-                          _savePhoneForBiometric(value);
-                        }
-                      },
                     ),
 
                     const SizedBox(height: 16),
